@@ -1,0 +1,52 @@
+{
+    "name": "tvdijen/simplesamlphp-module-ldappasswordreset",
+    "description": "A module that provides password reset functionality for LDAP-backends",
+    "type": "simplesamlphp-module",
+    "keywords": ["simplesamlphp", "ldap", "password", "reset"],
+    "license": "LGPL-2.1-or-later",
+    "authors": [
+        {
+            "name": "Tim van Dijen",
+            "email": "tvdijen@gmail.com"
+        }
+    ],
+    "config": {
+        "preferred-install": {
+            "simplesamlphp/simplesamlphp": "source",
+            "*": "dist"
+        },
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "simplesamlphp/composer-module-installer": true
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "SimpleSAML\\Module\\ldap\\PasswordReset\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SimpleSAML\\Test\\Utils\\": "vendor/simplesamlphp/simplesamlphp/tests/Utils"
+        }
+    },
+    "require": {
+        "php": ">=7.4 || ^8.0",
+
+        "simplesamlphp/assert": "~0.2.10",
+        "simplesamlphp/composer-module-installer": "~1.1",
+        "simplesamlphp/simplesamlphp": "^2.0.0-beta.8",
+        "simplesamlphp/simplesamlphp-module-ldap": "dev-symfony",
+        "tvdijen/simplesamlphp-module-cmdotcom": "dev-master"
+    },
+    "require-dev": {
+        "simplesamlphp/simplesamlphp-test-framework": "^1.1.5"
+    },
+    "extra": {
+        "ssp-mixedcase-module-name": "ldapPasswordReset"
+    },
+    "support": {
+        "issues": "https://github.com/tvdijen/simplesamlphp-module-ldapPasswordReset/issues",
+        "source": "https://github.com/tvdijen/simplesamlphp-module-ldapPasswordReset"
+    }
+}

@@ -1,0 +1,19 @@
+ldapPasswordReset-main:
+    path:	/
+    defaults:	{ _controller: 'SimpleSAML\Module\ldap\PasswordReset\Controller\PasswordReset::main' }
+ldapPasswordReset-enterEmail:
+    path:	/enterEmail
+    defaults:	{ _controller: 'SimpleSAML\Module\ldap\PasswordReset\Controller\PasswordReset::enterEmail' }
+#ldapPasswordReset-enterCode:
+#    path:       /enterCode
+#    defaults:   { _controller: 'SimpleSAML\Module\cmdotcom\Controller\OTP::enterCode' }
+#ldapPasswordReset-validateCode:
+#    path:       /validateCode
+#    defaults:   { _controller: 'SimpleSAML\Module\cmdotcom\Controller\OTP::validateCode' }
+#ldapPasswordReset-promptResend:
+#    path:       /promptResend
+#    defaults:   { _controller: 'SimpleSAML\Module\cmdotcom\Controller\OTP::promptResend' }
+#ldapPasswordReset-sendCode:
+#    path:       /sendCode
+#    defaults:   { _controller: 'SimpleSAML\Module\cmdotcom\Controller\OTP::sendCode' }
+
