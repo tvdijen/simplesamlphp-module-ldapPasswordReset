@@ -102,14 +102,14 @@ class PasswordReset
 
     /**
      * Trigger password reset flow
-     */
     public function main(): RedirectResponse
     {
-        /** @psalm-suppress UndefinedClass */
+        //** @psalm-suppress UndefinedClass *
         $authsource = new $this->authSimple('password-reset');
 
         return new RunnableResponse([$authsource, 'login'], []);
     }
+     */
 
 
     /**
@@ -124,9 +124,9 @@ class PasswordReset
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
 
-        $this->authState::loadState($id, 'cmdotcom:request', false);
+        $this->authState::loadState($id, 'ldapPasswordReset:request', false);
 
-        $t = new Template($this->config, 'cmdotcom:entercode.twig');
+        $t = new Template($this->config, 'ldapPasswordReset:enterEmail.twig');
         $t->data = [
             'AuthState' => $id,
         ];

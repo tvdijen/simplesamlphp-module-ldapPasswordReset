@@ -1,6 +1,6 @@
-ldapPasswordReset-main:
-    path:	/
-    defaults:	{ _controller: 'SimpleSAML\Module\ldap\PasswordReset\Controller\PasswordReset::main' }
+#ldapPasswordReset-main:
+#    path:	/
+#    defaults:	{ _controller: 'SimpleSAML\Module\ldap\PasswordReset\Controller\PasswordReset::main' }
 ldapPasswordReset-enterEmail:
     path:	/enterEmail
     defaults:	{ _controller: 'SimpleSAML\Module\ldap\PasswordReset\Controller\PasswordReset::enterEmail' }
