@@ -10,10 +10,17 @@
     </div>
     {% endif -%}
 
+    {%- if mailSent %}
+
+    <div class="message-box success">
+        {% trans %}An e-mail was sent to you. Please check your inbox.{% endtrans %}
+    </div>
+    {% endif -%}
+
     <h1>{{ 'Enter your e-mail address'|trans }}</h1>
 
     <div class="center">
-        <form class="pure-form pure-form-aligned center-form" action="{{ moduleURL('ldapPasswordReset/enteremail', {'AuthState': AuthState}) }}" method="post" name="f">
+        <form class="pure-form pure-form-aligned center-form" action="{{ moduleURL('ldapPasswordReset/enterEmail', {'AuthState': AuthState}) }}" method="post" name="f">
             <div class="form-align">
 
                 <div class="pure-control-group">

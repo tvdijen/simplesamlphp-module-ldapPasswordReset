@@ -1,13 +1,19 @@
 <?php
 
-namespace SimpleSAML\Module\ldap\PasswordReset\Controller;
+namespace SimpleSAML\Module\ldapPasswordReset\Controller;
 
-//use SimpleSAML\Assert\Assert;
-use SimpleSAML\{Auth, Configuration, Session};
-use SimpleSAML\Module\ldapPasswordReset\Auth\Source\LdapPasswordReset;
-//use SimpleSAML\HTTP\RunnableResponse;
+use Exception;
+use SimpleSAML\Assert\Assert;
+use SimpleSAML\{Auth, Configuration, Error, Logger, Module, Session};
+use SimpleSAML\Module\ldap\Utils\Ldap;
+use SimpleSAML\Module\ldapPasswordReset\MagicLink;
+use SimpleSAML\Module\ldapPasswordReset\TokenStorage;
 use SimpleSAML\XHTML\Template;
-//use Symfony\Component\HttpFoundation\{RedirectResponse, Request};
+use Symfony\Component\HttpFoundation\{RedirectResponse, Request};
+use Symfony\Component\Ldap\Entry;
+use Symfony\Component\Ldap\Adapter\ExtLdap\Query;
+
+use function var_export;
 
 /**
  * Controller class for the ldapPasswordReset module.
@@ -22,7 +28,7 @@ class PasswordReset
     protected Configuration $config;
 
     /** @var \SimpleSAML\Logger */
-//    protected Logger $logger;
+    protected Logger $logger;
 
     /** @var \SimpleSAML\Session */
     protected Session $session;
@@ -35,12 +41,6 @@ class PasswordReset
      * @psalm-var \SimpleSAML\Auth\State|class-string
      */
     protected $authState = Auth\State::class;
-
-    /**
-     * @var \SimpleSAML\Auth\Simple|string
-     * @psalm-var \SimpleSAML\Auth\Simple|class-string
-     */
-    protected $authSimple = Auth\Simple::class;
 
     /**
      * Password reset Controller constructor.
@@ -89,27 +89,17 @@ class PasswordReset
         $this->authState = $authState;
     }
 
-    /**
-     * Inject the \SimpleSAML\Auth\Simple dependency.
-     *
-     * @param \SimpleSAML\Auth\Simple $authSimple
-     */
-    public function setAuthSimple(Auth\Simple $authSimple): void
-    {
-        $this->authSimple = $authSimple;
-    }
-
 
     /**
      * Trigger password reset flow
+     */
     public function main(): RedirectResponse
     {
-        //** @psalm-suppress UndefinedClass *
-        $authsource = new $this->authSimple('password-reset');
+        $state = [];
+        $id = Auth\State::saveState($state, 'ldapPasswordReset:request');
 
-        return new RunnableResponse([$authsource, 'login'], []);
+        return new RedirectResponse(Module::getModuleURL('ldapPasswordReset/enterEmail', ['AuthState' => $id]));
     }
-     */
 
 
     /**
@@ -124,12 +114,29 @@ class PasswordReset
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
 
-        $this->authState::loadState($id, 'ldapPasswordReset:request', false);
+        $state = $this->authState::loadState($id, 'ldapPasswordReset:request', false);
 
-        $t = new Template($this->config, 'ldapPasswordReset:enterEmail.twig');
+        $t = new Template($this->config, 'ldapPasswordReset:enteremail.twig');
         $t->data = [
             'AuthState' => $id,
+            'mailSent' => false,
         ];
+
+        if ($request->request->has('email')) {
+            $t->data['mailSent'] = true;
+
+            $email = $request->request->get('email');
+            $user = $this->findUserByEmail($email);
+
+            if ($user !== null) {
+                $tokenStorage = new TokenStorage($this->config);
+                $token = $tokenStorage->generateToken();
+                $tokenStorage->storeToken($token, $user);
+
+                $mailer = new MagicLink($this->config);
+                $mailer->sendMagicLink($email, $token);
+            }
+        }
 
         return $t;
     }
@@ -142,5 +149,75 @@ class PasswordReset
      */
     public function promptReset(Request $request): Template
     {
+    }
+
+
+    /**
+     * Find user in LDAP-store
+     *
+     * @param string $email
+     * @return \Symfony\Component\Ldap\Entry|null
+     */
+    private function findUserByEmail(string $email): ?Entry
+    {
+        // @TODO: make this a configurable setting
+        $authsource = 'passwordReset';
+        $config = Configuration::getConfig('authsources.php')->toArray()[$authsource];
+
+        $ldapConfig = Configuration::loadFromArray(
+            $config,
+            'authsources[' . var_export($authsource, true) . ']'
+        );
+
+        $encryption = $ldapConfig->getOptionalString('encryption', 'ssl');
+        Assert::oneOf($encryption, ['none', 'ssl', 'tls']);
+
+        $version = $ldapConfig->getOptionalInteger('version', 3);
+        Assert::positiveInteger($version);
+
+        $timeout = $ldapConfig->getOptionalInteger('timeout', 3);
+        Assert::positiveInteger($timeout);
+
+        $ldapUtils = new Ldap();
+        $ldapObject = $ldapUtils->create(
+            $ldapConfig->getString('connection_string'),
+            $encryption,
+            $version,
+            $ldapConfig->getOptionalString('extension', 'ext_ldap'),
+            $ldapConfig->getOptionalBoolean('debug', false),
+            $ldapConfig->getOptionalArray('options', []),
+        );
+
+
+        $searchScope = $ldapConfig->getOptionalString('search.scope', Query::SCOPE_SUB);
+        Assert::oneOf($searchScope, [Query::SCOPE_BASE, Query::SCOPE_ONE, Query::SCOPE_SUB]);
+
+        $timeout = $ldapConfig->getOptionalInteger('timeout', 3);
+        $searchBase = $ldapConfig->getArray('search.base');
+        $options = [
+            'scope' => $searchScope,
+            'timeout' => $timeout,
+        ];
+
+        $searchUsername = $ldapConfig->getString('search.username');
+        Assert::notWhitespaceOnly($searchUsername);
+
+        $searchPassword = $ldapConfig->getOptionalString('search.password', null);
+        Assert::nullOrnotWhitespaceOnly($searchPassword);
+
+        try {
+            $ldapUtils->bind($ldapObject, $searchUsername, $searchPassword);
+        } catch (Error\Error $e) {
+            throw new Error\Exception("Unable to bind using the configured search.username and search.password.");
+        }
+
+        $filter = '(|(mail=' . $email . '))';
+
+        try {
+            return $ldapUtils->search($ldapObject, $searchBase, $filter, $options, false);
+        } catch (Error\Exception $e) {
+            // We haven't found the user
+            return null;
+        }
     }
 }
