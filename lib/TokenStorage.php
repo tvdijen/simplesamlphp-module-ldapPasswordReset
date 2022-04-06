@@ -72,6 +72,18 @@ class TokenStorage
 
 
     /**
+     * Retrieve stored token
+     *
+     * @param string $token
+     * @return array|null
+     */
+    public function deleteToken(string $token): ?array
+    {
+        $this->store->get('magiclink', $token);
+    }
+
+
+    /**
      * Delete stored token
      *
      * @param string $token
