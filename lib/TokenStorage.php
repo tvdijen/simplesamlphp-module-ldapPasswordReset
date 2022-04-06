@@ -29,6 +29,9 @@ class TokenStorage
     /** @var \Symfony\Component\HttpFoundation\Request */
     protected Request $request;
 
+    /** @var \SimpleSAML\Store\StoreInterface */
+    protected StoreInterface $store;
+
 
     /**
      * @param \SimpleSAML\Configuration $config The configuration to use.
@@ -37,6 +40,12 @@ class TokenStorage
     {
         $this->config = $config;
         $this->moduleConfig = Configuration::getOptionalConfig('module_ldappasswordreset.php');
+
+        $store = Store\StoreFactory::getInstance($config->getString('store.type'));
+        if ($store === false) {
+            throw new Exception('Using `phpsession` as a store is not supported when using this module.');
+        }
+        $this->store = $store;
     }
 
 
@@ -49,17 +58,16 @@ class TokenStorage
      */
     public function storeToken(Request $request, string $token, Entry $user): void
     {
-        $store = Store\StoreFactory::getInstance($this->config->getString('store.type'));
-        if ($store === false) {
-            throw new Exception('Using `phpsession` as a store is not supported when using this module.');
-        }
-
         // TODO: Make expiration configurable
-        $expire = time() + (60 * 15);
+        $expire = time() + (60 * 15); // 15 minutes
+
         $attributes = $user->getAttributes();
         $mail = array_pop($attributes['mail']);
-        $session = $this->request->cookies->get('SimpleSAMLSessionID');
-        $store->set('magiclink', $token, ['mail' => $mail, 'session' => $session], $expire);
+
+        $sessionCookie = $this->config->getString('session.cookie.name');
+        $session = $this->request->cookies->get($sessionCookie);
+
+        $this->store->set('magiclink', $token, ['mail' => $mail, 'session' => $session], $expire);
     }
 
 
