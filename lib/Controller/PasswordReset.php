@@ -95,10 +95,7 @@ class PasswordReset
      */
     public function main(): RedirectResponse
     {
-        $state = [];
-        $id = Auth\State::saveState($state, 'ldapPasswordReset:request');
-
-        return new RedirectResponse(Module::getModuleURL('ldapPasswordReset/enterEmail', ['AuthState' => $id]));
+        return new RedirectResponse(Module::getModuleURL('ldapPasswordReset/enterEmail'));
     }
 
 
@@ -109,13 +106,6 @@ class PasswordReset
      */
     public function enterEmail(Request $request): Template
     {
-        $id = $request->query->get('AuthState', null);
-        if ($id === null) {
-            throw new Error\BadRequest('Missing AuthState parameter.');
-        }
-
-        $state = $this->authState::loadState($id, 'ldapPasswordReset:request', false);
-
         $t = new Template($this->config, 'ldapPasswordReset:enteremail.twig');
         $t->data = [
             'AuthState' => $id,
@@ -129,12 +119,17 @@ class PasswordReset
             $user = $this->findUserByEmail($email);
 
             if ($user !== null) {
-                $tokenStorage = new TokenStorage($this->config, $request);
+                $tokenStorage = new TokenStorage($this->config);
                 $token = $tokenStorage->generateToken();
-                $tokenStorage->storeToken($token, $user);
+                $session = $this->session->getTrackID();
+
+                $state = ['ldapPasswordReset:magicLinkRequested' => true];
+                $id = Auth\State::saveState($state, 'ldapPasswordReset:request');
+
+                $tokenStorage->storeToken($token, $email, $session);
 
                 $mailer = new MagicLink($this->config);
-                $mailer->sendMagicLink($email, $token);
+                $mailer->sendMagicLink($email, $token, $id);
             }
         }
 
@@ -143,12 +138,56 @@ class PasswordReset
 
 
     /**
+     * Process a received magic link.
+     *
+     * @return \Symfony\Component\HttpFoundation\RedirectResponse
+     */
+    public function validateMagicLink(Request $request): RedirectResponse
+    {
+        if (!$request->query->has('AuthState')) {
+            throw new Error\BadRequest('Missing AuthState parameter.');
+        } elseif (!$request->query->has('t')) {
+            throw new Error\BadRequest('Missing token.');
+        }
+
+        $id = $request->query->get('AuthState');
+        $state = $this->authState::loadState($id, 'ldapPasswordReset:request');
+
+        $token = $request->query->get('t');
+        Assert::uuid($token, 'Invalid token provided.', Error\BadRequest::class);
+
+        $tokenStorage = new TokenStorage($this->config);
+        $token = $tokenStorage->retrieveToken();
+
+        if ($token !== null) {
+            if ($token['session'] === $this->session->getTrackID()) {
+
+            }
+        }
+
+        return new RedirectResponse(Module::getModuleURL('ldapPasswordReset/invalidMagicLink');
+    }
+
+
+    /**
+     * Display an error message when an invalid magic link was used.
+     *
+     * @return \SimpleSAML\XHTML\Template
+     */
+    public function invalidMagicLink(Request $request): Template
+    {
+        return new Template($this->config, 'ldapPasswordReset:invalidMagicLink.twig');
+    }
+
+
+    /**
      * Display the page where the user can set a new password.
      *
      * @return \SimpleSAML\XHTML\Template
      */
-    public function promptReset(Request $request): Template
+    public function resetPassword(Request $request): Template
     {
+
     }
 
 

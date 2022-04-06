@@ -4,16 +4,12 @@ ldapPasswordReset-main:
 ldapPasswordReset-enterEmail:
     path:	/enterEmail
     defaults:	{ _controller: 'SimpleSAML\Module\ldapPasswordReset\Controller\PasswordReset::enterEmail' }
-#ldapPasswordReset-enterCode:
-#    path:       /enterCode
-#    defaults:   { _controller: 'SimpleSAML\Module\cmdotcom\Controller\OTP::enterCode' }
-#ldapPasswordReset-validateCode:
-#    path:       /validateCode
-#    defaults:   { _controller: 'SimpleSAML\Module\cmdotcom\Controller\OTP::validateCode' }
-#ldapPasswordReset-promptResend:
-#    path:       /promptResend
-#    defaults:   { _controller: 'SimpleSAML\Module\cmdotcom\Controller\OTP::promptResend' }
-#ldapPasswordReset-sendCode:
-#    path:       /sendCode
-#    defaults:   { _controller: 'SimpleSAML\Module\cmdotcom\Controller\OTP::sendCode' }
-
+ldapPasswordReset-resetPassword:
+    path:	/resetPassword
+    defaults:	{ _controller: 'SimpleSAML\Module\ldapPasswordReset\Controller\PasswordReset::resetPassword' }
+ldapPasswordReset-validateMagicLink:
+    path:	/validateMagicLink
+    defaults:	{ _controller: 'SimpleSAML\Module\ldapPasswordReset\Controller\PasswordReset::validateMagicLink' }
+ldapPasswordReset-invalidMagicLink:
+    path:	/invalidMagicLink
+    defaults:	{ _controller: 'SimpleSAML\Module\ldapPasswordReset\Controller\PasswordReset::invalidMagicLink' }

@@ -36,7 +36,7 @@ class TokenStorage
     /**
      * @param \SimpleSAML\Configuration $config The configuration to use.
      */
-    public function __construct(Configuration $config, Request $request)
+    public function __construct(Configuration $config)
     {
         $this->config = $config;
         $this->moduleConfig = Configuration::getOptionalConfig('module_ldappasswordreset.php');
@@ -53,19 +53,14 @@ class TokenStorage
      * Store token
      *
      * @param string $token
-     * @param \Symfony\Component\Ldap\Entry $user
+     * @param string $mail
+     * @param string $session
      * @return void
      */
-    public function storeToken(string $token, Entry $user): void
+    public function storeToken(string $token, string $mail, string $session): void
     {
         // TODO: Make expiration configurable
         $expire = time() + (60 * 15); // 15 minutes
-
-        $attributes = $user->getAttributes();
-        $mail = array_pop($attributes['mail']);
-
-        $sessionCookie = $this->config->getString('session.cookie.name');
-        $session = $this->request->cookies->get($sessionCookie);
 
         $this->store->set('magiclink', $token, ['mail' => $mail, 'session' => $session], $expire);
     }

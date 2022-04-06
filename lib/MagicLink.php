@@ -34,11 +34,12 @@ class MagicLink
      *
      * @param string $email
      * @param string $token
+     * @param string $id
      * @return void
      */
-    public function sendMagicLink(string $email, string $token): void
+    public function sendMagicLink(string $email, string $token, string $id): void
     {
-        $url = Module::getModuleURL('ldapPasswordReset/resetPassword', ['t' => $token]);
+        $url = Module::getModuleURL('ldapPasswordReset/validateMagicLink', ['t' => $token, 'AuthState' => $id]);
 
         $mail = new EMail('Password reset', 'noreply@moo-archive.nl', $email);
         $mail->setData(['url' => $url]);
