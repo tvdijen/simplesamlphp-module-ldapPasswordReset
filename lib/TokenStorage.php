@@ -56,7 +56,7 @@ class TokenStorage
      * @param \Symfony\Component\Ldap\Entry $user
      * @return void
      */
-    public function storeToken(Request $request, string $token, Entry $user): void
+    public function storeToken(string $token, Entry $user): void
     {
         // TODO: Make expiration configurable
         $expire = time() + (60 * 15); // 15 minutes
