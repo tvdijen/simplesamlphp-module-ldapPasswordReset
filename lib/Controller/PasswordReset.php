@@ -129,7 +129,7 @@ class PasswordReset
             $user = $this->findUserByEmail($email);
 
             if ($user !== null) {
-                $tokenStorage = new TokenStorage($this->config);
+                $tokenStorage = new TokenStorage($this->config, $request);
                 $token = $tokenStorage->generateToken();
                 $tokenStorage->storeToken($token, $user);
 
