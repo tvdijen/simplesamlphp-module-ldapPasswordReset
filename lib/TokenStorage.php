@@ -72,6 +72,18 @@ class TokenStorage
 
 
     /**
+     * Delete stored token
+     *
+     * @param string $token
+     * @return void
+     */
+    public function deleteToken(string $token): void
+    {
+        $this->store->delete('magiclink', $token);
+    }
+
+
+    /**
      * Generate token
      *
      * @return string
