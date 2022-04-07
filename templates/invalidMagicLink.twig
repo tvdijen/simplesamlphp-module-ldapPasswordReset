@@ -1,0 +1,19 @@
+{% set pagetitle = 'Invalid magic link'|trans %}
+
+{% extends "@core/base.twig" %}
+
+{% block content %}
+
+    <h1>{{ 'Invalid magic link'|trans }}</h1>
+
+    <div class="center">
+        <p>{% trans %}The link you have used was not valid. Please note that magic links:{% endtrans %}</p>
+        <ul>
+            <li>{% trans %}are valid for a limited amount of time{% endtrans %};</li>
+            <li>{% trans %}must be used in the same browser as where the link was requested{% endtrans %};</li>
+            <li>{% trans %}can only be used one time{% endtrans %}.</li>
+        </ul>
+        <p>{{ 'Please click <a href=\"%RETRYURL%\">here</a> to require a new magic link.'|trans({'%RETRYURL%': retryURL})|raw }}</p>
+    </div>
+
+{% endblock %}
