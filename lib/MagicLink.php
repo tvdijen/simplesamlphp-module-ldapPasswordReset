@@ -40,7 +40,7 @@ class MagicLink
     {
         $url = Module::getModuleURL('ldapPasswordReset/validateMagicLink', ['t' => $token]);
 
-        $mail = new EMail('Password reset', 'noreply@moo-archive.nl', $email);
+        $mail = new Utils\EMail('Password reset', 'noreply@moo-archive.nl', $email);
         $mail->setData(['url' => $url]);
         $mail->setText('{url}');
         $mail->send();

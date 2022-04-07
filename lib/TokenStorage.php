@@ -30,7 +30,7 @@ class TokenStorage
     protected Request $request;
 
     /** @var \SimpleSAML\Store\StoreInterface */
-    protected StoreInterface $store;
+    protected Store\StoreInterface $store;
 
 
     /**
@@ -78,9 +78,9 @@ class TokenStorage
      * @param string $token
      * @return array|null
      */
-    public function deleteToken(string $token): ?array
+    public function retrieveToken(string $token): ?array
     {
-        $this->store->get('magiclink', $token);
+        return $this->store->get('magiclink', $token);
     }
 
 
@@ -103,7 +103,6 @@ class TokenStorage
      */
     public function generateToken(): string
     {
-        $uuid = Uuid::uuid4();
-        return base64_encode($uuid->toString());
+        return Uuid::uuid4()->toString();
     }
 }

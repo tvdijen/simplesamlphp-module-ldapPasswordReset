@@ -53,7 +53,7 @@ class PasswordReset
         $this->config = $config;
 //        $this->httpUtils = new Utils\HTTP();
         $this->logger = new Logger();
-//        $this->session = $session;
+        $this->session = $session;
     }
 
 
@@ -138,34 +138,36 @@ class PasswordReset
             throw new Error\BadRequest('Missing token.');
         }
 
-        $token = $request->query->get('t');
-        Assert::uuid($token, 'Invalid token provided.', Error\BadRequest::class);
+        $t = $request->query->get('t');
+        Assert::uuid($t, 'Invalid token provided.', Error\BadRequest::class);
 
         $tokenStorage = new TokenStorage($this->config);
-        $token = $tokenStorage->retrieveToken();
+        $token = $tokenStorage->retrieveToken($t);
 
-        Assert::isArray($token);
-        Assert::keyExists($token, 'mail');
-        Assert::keyExists($token, 'session');
-        Assert::keyExists($token, 'AuthState');
+        Assert::nullOrIsArray($token);
 
         if ($token !== null) {
+            Assert::keyExists($token, 'mail');
+            Assert::keyExists($token, 'session');
+            Assert::keyExists($token, 'AuthState');
+
             if ($token['session'] === $this->session->getTrackID()) {
                 $state = $this->authState::loadState($token['AuthState'], 'ldapPasswordReset:request', false);
                 if (($state !== false) && ($state['ldapPasswordReset:magicLinkRequested'] === true)) {
                     // All pre-conditions met - Allow user to change password
-                    $state['ldapPasswordReset:magicLinkValidated' => true];
+                    $state['ldapPasswordReset:magicLinkValidated'] = true;
+                    $state['ldapPasswordReset:subject'] = $token['mail'];
 
                     // Invalidate token - It may be used only once to reset a password
-                    $tokenStorage->deleteToken($token);
+                    $tokenStorage->deleteToken($t);
 
                     $id = $this->authState::saveState($state, 'ldapPasswordReset:request');
-                    return RedirectResponse(Module::getModuleURL('ldapPasswordReset/resetPassword', ['AuthState', $id]));
+                    return new RedirectResponse(Module::getModuleURL('ldapPasswordReset/resetPassword', ['AuthState', $id]));
                 }
             }
         }
 
-        return new RedirectResponse(Module::getModuleURL('ldapPasswordReset/invalidMagicLink');
+        return new RedirectResponse(Module::getModuleURL('ldapPasswordReset/invalidMagicLink'));
     }
 
 
