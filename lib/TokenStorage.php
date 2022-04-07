@@ -55,14 +55,20 @@ class TokenStorage
      * @param string $token
      * @param string $mail
      * @param string $session
+     * @param string $stateId
      * @return void
      */
-    public function storeToken(string $token, string $mail, string $session): void
+    public function storeToken(string $token, string $mail, string $session, string $stateId): void
     {
         // TODO: Make expiration configurable
         $expire = time() + (60 * 15); // 15 minutes
 
-        $this->store->set('magiclink', $token, ['mail' => $mail, 'session' => $session], $expire);
+        $this->store->set(
+            'magiclink',
+            $token,
+            ['mail' => $mail, 'session' => $session, 'AuthState' => $stateId],
+            $expire,
+        );
     }
 
 

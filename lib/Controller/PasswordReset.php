@@ -91,15 +91,6 @@ class PasswordReset
 
 
     /**
-     * Trigger password reset flow
-     */
-    public function main(): RedirectResponse
-    {
-        return new RedirectResponse(Module::getModuleURL('ldapPasswordReset/enterEmail'));
-    }
-
-
-    /**
      * Display the page where the EMail address should be entered.
      *
      * @return \SimpleSAML\XHTML\Template
@@ -108,7 +99,6 @@ class PasswordReset
     {
         $t = new Template($this->config, 'ldapPasswordReset:enteremail.twig');
         $t->data = [
-            'AuthState' => $id,
             'mailSent' => false,
         ];
 
@@ -126,10 +116,10 @@ class PasswordReset
                 $state = ['ldapPasswordReset:magicLinkRequested' => true];
                 $id = Auth\State::saveState($state, 'ldapPasswordReset:request');
 
-                $tokenStorage->storeToken($token, $email, $session);
+                $tokenStorage->storeToken($token, $email, $session, $id);
 
                 $mailer = new MagicLink($this->config);
-                $mailer->sendMagicLink($email, $token, $id);
+                $mailer->sendMagicLink($email, $token);
             }
         }
 
@@ -144,14 +134,9 @@ class PasswordReset
      */
     public function validateMagicLink(Request $request): RedirectResponse
     {
-        if (!$request->query->has('AuthState')) {
-            throw new Error\BadRequest('Missing AuthState parameter.');
-        } elseif (!$request->query->has('t')) {
+        if (!$request->query->has('t')) {
             throw new Error\BadRequest('Missing token.');
         }
-
-        $id = $request->query->get('AuthState');
-        $state = $this->authState::loadState($id, 'ldapPasswordReset:request');
 
         $token = $request->query->get('t');
         Assert::uuid($token, 'Invalid token provided.', Error\BadRequest::class);
@@ -159,9 +144,24 @@ class PasswordReset
         $tokenStorage = new TokenStorage($this->config);
         $token = $tokenStorage->retrieveToken();
 
+        Assert::isArray($token);
+        Assert::keyExists($token, 'mail');
+        Assert::keyExists($token, 'session');
+        Assert::keyExists($token, 'AuthState');
+
         if ($token !== null) {
             if ($token['session'] === $this->session->getTrackID()) {
+                $state = $this->authState::loadState($token['AuthState'], 'ldapPasswordReset:request', false);
+                if (($state !== false) && ($state['ldapPasswordReset:magicLinkRequested'] === true)) {
+                    // All pre-conditions met - Allow user to change password
+                    $state['ldapPasswordReset:magicLinkValidated' => true];
 
+                    // Invalidate token - It may be used only once to reset a password
+                    $tokenStorage->deleteToken($token);
+
+                    $id = $this->authState::saveState($state, 'ldapPasswordReset:request');
+                    return RedirectResponse(Module::getModuleURL('ldapPasswordReset/resetPassword', ['AuthState', $id]));
+                }
             }
         }
 
@@ -187,7 +187,7 @@ class PasswordReset
      */
     public function resetPassword(Request $request): Template
     {
-
+        echo "DEBUG";
     }
 
 
