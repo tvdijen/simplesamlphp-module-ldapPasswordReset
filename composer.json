@@ -38,6 +38,7 @@
         "simplesamlphp/composer-module-installer": "^1.1.8",
         "simplesamlphp/simplesamlphp": "^2.0.0-beta.8",
         "simplesamlphp/simplesamlphp-module-ldap": "^2.0.0-rc1",
+        "symfony/security-bundle": "^5.4",
         "tvdijen/simplesamlphp-module-cmdotcom": "^1.1.5"
     },
     "require-dev": {

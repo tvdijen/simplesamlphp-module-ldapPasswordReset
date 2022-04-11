@@ -5,14 +5,18 @@ namespace SimpleSAML\Module\ldapPasswordReset\Controller;
 use Exception;
 use SimpleSAML\Assert\Assert;
 use SimpleSAML\{Auth, Configuration, Error, Logger, Module, Session};
-use SimpleSAML\Module\ldap\Utils\Ldap;
+use SimpleSAML\Module\ldap\Utils\Ldap as LdapUtils;
 use SimpleSAML\Module\ldapPasswordReset\MagicLink;
 use SimpleSAML\Module\ldapPasswordReset\TokenStorage;
+use SimpleSAML\Module\ldapPasswordReset\UserRepository;
 use SimpleSAML\XHTML\Template;
 use Symfony\Component\HttpFoundation\{RedirectResponse, Request};
 use Symfony\Component\Ldap\Entry;
-use Symfony\Component\Ldap\Adapter\ExtLdap\Query;
+use Symfony\Component\Ldap\Ldap;
+//use Symfony\Component\Ldap\Security\LdapUserProvider;
+//use Symfony\Component\Security\Core\Exception\UserNotFoundException;;
 
+use function sprintf;
 use function var_export;
 
 /**
@@ -30,17 +34,21 @@ class PasswordReset
     /** @var \SimpleSAML\Logger */
     protected Logger $logger;
 
+    /** @var \SimpleSAML\Configuration */
+    protected Configuration $moduleConfig;
+
     /** @var \SimpleSAML\Session */
     protected Session $session;
 
-    /** @var \SimpleSAML\Utils\HTTP */
-//    protected Utils\HTTP $httpUtils;
+    /** @var \SimpleSAML\Module\ldapPasswordReset\UserRepository */
+    protected UserRepository $userRepository;
 
     /**
      * @var \SimpleSAML\Auth\State|string
      * @psalm-var \SimpleSAML\Auth\State|class-string
      */
     protected $authState = Auth\State::class;
+
 
     /**
      * Password reset Controller constructor.
@@ -51,9 +59,10 @@ class PasswordReset
     public function __construct(Configuration $config, Session $session)
     {
         $this->config = $config;
-//        $this->httpUtils = new Utils\HTTP();
         $this->logger = new Logger();
+        $this->moduleConfig = Configuration::getConfig('module_ldapPasswordReset.php');
         $this->session = $session;
+        $this->userRepository = new UserRepository();
     }
 
 
@@ -61,22 +70,11 @@ class PasswordReset
      * Inject the \SimpleSAML\Logger dependency.
      *
      * @param \SimpleSAML\Logger $logger
+     */
     public function setLogger(Logger $logger): void
     {
         $this->logger = $logger;
     }
-     */
-
-
-    /**
-     * Inject the \SimpleSAML\Utils\HTTP dependency.
-     *
-     * @param \SimpleSAML\Utils\HTTP $httpUtils
-    public function setHttpUtils(Utils\HTTP $httpUtils): void
-    {
-        $this->httpUtils = $httpUtils;
-    }
-     */
 
 
     /**
@@ -97,16 +95,16 @@ class PasswordReset
      */
     public function enterEmail(Request $request): Template
     {
-        $t = new Template($this->config, 'ldapPasswordReset:enterEmail.twig');
+        $t = new Template($this->config, 'ldapPasswordReset:enteremail.twig');
         $t->data = [
             'mailSent' => false,
         ];
 
-        if ($request->request->has('email')) {
+        if ($request->request->has('submit_button')) {
             $t->data['mailSent'] = true;
 
             $email = $request->request->get('email');
-            $user = $this->findUserByEmail($email);
+            $user = $this->userRepository->findUserByEmail($email);
 
             if ($user !== null) {
                 $tokenStorage = new TokenStorage($this->config);
@@ -154,6 +152,12 @@ class PasswordReset
             if ($token['session'] === $this->session->getTrackID()) {
                 $state = $this->authState::loadState($token['AuthState'], 'ldapPasswordReset:request', false);
                 if (($state !== false) && ($state['ldapPasswordReset:magicLinkRequested'] === true)) {
+                    $this->logger::info(sprintf(
+                        "Preconditions for token '%s' were met. User '%s' may change it's password.",
+                        $t,
+                        $token['mail']
+                    ));
+
                     // All pre-conditions met - Allow user to change password
                     $state['ldapPasswordReset:magicLinkValidated'] = true;
                     $state['ldapPasswordReset:subject'] = $token['mail'];
@@ -162,9 +166,23 @@ class PasswordReset
                     $tokenStorage->deleteToken($t);
 
                     $id = $this->authState::saveState($state, 'ldapPasswordReset:request');
-                    return new RedirectResponse(Module::getModuleURL('ldapPasswordReset/resetPassword', ['AuthState', $id]));
+                    return new RedirectResponse(
+                        Module::getModuleURL('ldapPasswordReset/resetPassword', ['AuthState' => $id])
+                    );
+                } else {
+                   $this->logger::warning(sprintf(
+                       "Token '%s' was valid, but according to the AuthState it was never requested.",
+                       $t
+                   ));
                 }
+            } else {
+                $this->logger::warning(sprintf(
+                    "Token '%s' was used in a different browser session then where it was requested from.",
+                    $t
+               ));
             }
+        } else {
+            $this->logger::warning(sprintf("Could not find token '%s' in token storage.", $t));
         }
 
         return new RedirectResponse(Module::getModuleURL('ldapPasswordReset/invalidMagicLink'));
@@ -189,76 +207,42 @@ class PasswordReset
      */
     public function resetPassword(Request $request): Template
     {
-        echo "DEBUG";
-    }
+        $id = $request->query->get('AuthState', null);
+        if ($id === null) {
+            throw new Error\BadRequest('Missing AuthState parameter.');
+        }
 
+        /** @var array $state */
+        $state = $this->authState::loadState($id, 'ldapPasswordReset:request', false);
 
-    /**
-     * Find user in LDAP-store
-     *
-     * @param string $email
-     * @return \Symfony\Component\Ldap\Entry|null
-     */
-    private function findUserByEmail(string $email): ?Entry
-    {
-        // @TODO: make this a configurable setting
-        $authsource = 'passwordReset';
-        $config = Configuration::getConfig('authsources.php')->toArray()[$authsource];
-
-        $ldapConfig = Configuration::loadFromArray(
-            $config,
-            'authsources[' . var_export($authsource, true) . ']'
-        );
-
-        $encryption = $ldapConfig->getOptionalString('encryption', 'ssl');
-        Assert::oneOf($encryption, ['none', 'ssl', 'tls']);
-
-        $version = $ldapConfig->getOptionalInteger('version', 3);
-        Assert::positiveInteger($version);
-
-        $timeout = $ldapConfig->getOptionalInteger('timeout', 3);
-        Assert::positiveInteger($timeout);
-
-        $ldapUtils = new Ldap();
-        $ldapObject = $ldapUtils->create(
-            $ldapConfig->getString('connection_string'),
-            $encryption,
-            $version,
-            $ldapConfig->getOptionalString('extension', 'ext_ldap'),
-            $ldapConfig->getOptionalBoolean('debug', false),
-            $ldapConfig->getOptionalArray('options', []),
-        );
-
-
-        $searchScope = $ldapConfig->getOptionalString('search.scope', Query::SCOPE_SUB);
-        Assert::oneOf($searchScope, [Query::SCOPE_BASE, Query::SCOPE_ONE, Query::SCOPE_SUB]);
-
-        $timeout = $ldapConfig->getOptionalInteger('timeout', 3);
-        $searchBase = $ldapConfig->getArray('search.base');
-        $options = [
-            'scope' => $searchScope,
-            'timeout' => $timeout,
+        $t = new Template($this->config, 'ldapPasswordReset:resetPassword.twig');
+        $t->data = [
+            'AuthState' => $id,
+            'passwordMismatch' => false,
+            'passwordChanged' => false,
+            'emailAddress' => $state['ldapPasswordReset:subject'],
         ];
 
-        $searchUsername = $ldapConfig->getString('search.username');
-        Assert::notWhitespaceOnly($searchUsername);
+        // Check if the submit-button was hit, or whether this is a first visit
+        if ($request->request->has('submit_button')) {
+            // See if the submitted passwords match
+            $newPassword = $request->request->get('new-password');
+            $retypePassword = $request->request->get('password');
 
-        $searchPassword = $ldapConfig->getOptionalString('search.password', null);
-        Assert::nullOrnotWhitespaceOnly($searchPassword);
-
-        try {
-            $ldapUtils->bind($ldapObject, $searchUsername, $searchPassword);
-        } catch (Error\Error $e) {
-            throw new Error\Exception("Unable to bind using the configured search.username and search.password.");
+            if (strcmp($newPassword, $retypePassword) === 0) {
+                $user = $this->userRepository->findUserByEmail($state['ldapPasswordReset:subject']);
+                try {
+                    $this->userRepository->updatePassword($user, $newPassword);
+                    $t->data['passwordChanged'] = true;
+                } catch (LdapException $e) {
+                    $t->data['passwordChanged'] = false;
+                    $t->errorMessage = $e->getMessage();
+                }
+            } else {
+                $t->data['passwordMismatch'] = true;
+            }
         }
 
-        $filter = '(|(mail=' . $email . '))';
-
-        try {
-            return $ldapUtils->search($ldapObject, $searchBase, $filter, $options, false);
-        } catch (Error\Exception $e) {
-            // We haven't found the user
-            return null;
-        }
+        return $t;
     }
 }
