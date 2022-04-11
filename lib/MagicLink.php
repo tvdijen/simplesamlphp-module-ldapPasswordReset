@@ -25,7 +25,7 @@ class MagicLink
     public function __construct(Configuration $config)
     {
         $this->config = $config;
-        $this->moduleConfig = Configuration::getOptionalConfig('module_ldappasswordreset.php');
+        $this->moduleConfig = Configuration::getOptionalConfig('module_ldapPasswordReset.php');
     }
 
 

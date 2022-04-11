@@ -2,8 +2,9 @@
 
 namespace SimpleSAML\Module\ldapPasswordReset;
 
-use SimpleSAML\{Assert, Configuration, Error, Logger};
-use SimpleSAML\Module\ldap\Utils as LdapUtils;
+use SimpleSAML\Assert\Assert;
+use SimpleSAML\{Configuration, Error, Logger};
+use SimpleSAML\Module\ldap\Utils\Ldap as LdapUtils;
 use Symfony\Component\Ldap\Entry;
 use Symfony\Component\Ldap\Ldap;
 use Symfony\Component\Ldap\Security\LdapUserProvider;
@@ -35,7 +36,7 @@ class UserRepository
      */
     public function __construct()
     {
-        $this->moduleConfig = Configuration::getOptionalConfig('module_ldappasswordreset.php');
+        $this->moduleConfig = Configuration::getOptionalConfig('module_ldapPasswordReset.php');
         $this->ldapUtils = new LdapUtils();
 
         $encryption = $this->moduleConfig->getOptionalString('encryption', 'ssl');

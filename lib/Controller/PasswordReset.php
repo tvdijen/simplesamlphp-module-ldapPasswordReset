@@ -5,19 +5,13 @@ namespace SimpleSAML\Module\ldapPasswordReset\Controller;
 use Exception;
 use SimpleSAML\Assert\Assert;
 use SimpleSAML\{Auth, Configuration, Error, Logger, Module, Session};
-use SimpleSAML\Module\ldap\Utils\Ldap as LdapUtils;
 use SimpleSAML\Module\ldapPasswordReset\MagicLink;
 use SimpleSAML\Module\ldapPasswordReset\TokenStorage;
 use SimpleSAML\Module\ldapPasswordReset\UserRepository;
 use SimpleSAML\XHTML\Template;
 use Symfony\Component\HttpFoundation\{RedirectResponse, Request};
-use Symfony\Component\Ldap\Entry;
-use Symfony\Component\Ldap\Ldap;
-//use Symfony\Component\Ldap\Security\LdapUserProvider;
-//use Symfony\Component\Security\Core\Exception\UserNotFoundException;;
 
 use function sprintf;
-use function var_export;
 
 /**
  * Controller class for the ldapPasswordReset module.
