@@ -40,7 +40,13 @@ class MagicLink
     {
         $url = Module::getModuleURL('ldapPasswordReset/validateMagicLink', ['t' => $token]);
 
-        $mail = new Utils\EMail('Password reset', 'noreply@moo-archive.nl', $email, 'ldapPasswordReset:mailtxt.twig', 'ldapPasswordReset:mailhtml.twig');
+        $mail = new Utils\EMail(
+            $this->moduleConfig->getOptionalString('email.subject', 'Password reset'),
+            $this->moduleConfig->getOptionalString('email.from', $this->config->getString('technicalcontact_email')),
+            $email,
+            'ldapPasswordReset:mailtxt.twig',
+            'ldapPasswordReset:mailhtml.twig'
+        );
         $mail->setData(['url' => $url]);
         $mail->setText('{url}');
         $mail->send();

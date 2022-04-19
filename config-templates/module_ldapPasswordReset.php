@@ -32,4 +32,12 @@ $config = [
     // this is left as NULL, no bind will be performed before searching.
     'search.username' => 'CN=IDP LDAP Account,OU=Service Accounts,DC=example,DC=org',
     'search.password' => 'secret',
+
+    // The email properties
+    //
+    // The subject for the mail. Defaults to 'Password reset'
+    //'email.subject' => 'Password reset',
+
+    // The from-address for the mail. Defaults to 'technicalcontact_email' in config.php
+    //'email.from' => 'noreply@example.org',
 ];
