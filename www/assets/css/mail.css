@@ -1,0 +1,14 @@
+#header {
+    background-image: none;
+    width: 100%;
+    clear: both;
+    height: 100px;
+}
+
+#logo img {
+    margin-top: -8px;
+    float: left;
+    clear: both;
+    width: 250px;
+    height: 75px;
+}
