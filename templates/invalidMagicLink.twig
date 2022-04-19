@@ -17,7 +17,7 @@
             <li>{% trans %}must be used in the same browser as where the link was requested{% endtrans %};</li>
             <li>{% trans %}can only be used one time{% endtrans %}.</li>
         </ul>
-        <p>{{ 'Please click <a href=\"%RETRYURL%\">here</a> to require a new magic link.'|trans({'%RETRYURL%': moduleURL('ldapPasswordReset/enterEmail')})|raw }}</p>
+        <p>{{ 'Please click <a href=\"%RETRYURL%\">here</a> to request a new magic link.'|trans({'%RETRYURL%': moduleURL('ldapPasswordReset/enterEmail')})|raw }}</p>
     </div>
 
 {% endblock %}
