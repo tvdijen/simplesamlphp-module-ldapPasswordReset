@@ -3,25 +3,41 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>{{ pagetitle }}</title>
-    <link rel="stylesheet" type="text/css" href="{{ asset("css/stylesheet.css") }}">
+    <link rel="stylesheet" type="text/css" href="{{ baseurlpath }}{{ asset('css/mail.css', 'ldapPasswordReset') }}">
   </head>
   <body id="{{ templateId }}">
     <div id="layout">
-    {%- block header %}{% include "@ldapPasswordReset/_mail_header.twig" %}{% endblock %}
+      <div id="header">
+        <div class="wrap">
+          <div class="left">
+            <div class="v-center logo-header">
+              <div id="logo">
+                <img class="pure-img" src="{{ baseurlpath }}{{ asset('images/' ~ logo, 'themerijksoverheid') }}" alt="LOGO">
+              </div>
+            </div>
+          </div>
+        </div> <!-- wrap -->
+      </div> <!-- header -->
       <div id="content">
         <div class="wrap">
-
-          {%- block contentwrapper %}
-            {%- block content %}{% endblock %}
-          {%- endblock contentwrapper %}
-
-          </div>
-        </div><!-- content -->
+          {% trans %}Dear Sir or Madam,{% endtrans %}
+          <br /><br />
+          {% trans %}A password reset was requested for your account.{% endtrans %}
+          <br />
+          {% trans %}You can reset your password by following the link below:{% endtrans %}
+          <br /><br />
+          <pre><a href="{{ data.url|first }}">{{ data.url|first }}</a></pre>
+          <br /><br />
+          {% trans %}If it wasn't you who requested this password reset, please let us know as soon as possible by replying to this email.{% endtrans %}
+          <br /><br />
+          {% trans %}Kind regards,{% endtrans %}
+          <br /><br />
+          Shared Service Center ICT
+          <br />
+          <a href="mailto:servicedesk@ssc-ict.nl">servicedesk@ssc-ict.nl</a>
+        </div>
+      </div><!-- content -->
       <div id="push"></div>
     </div><!-- layout -->
-    <div id="foot">
-      {%- block footer %}{% include "@ldapPasswordReset/_mail_footer.twig" %}{% endblock %}
-
-    </div>
   </body>
 </html>

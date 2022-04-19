@@ -1,13 +1,18 @@
 {% autoescape false %}
-# {{ subject }}
+# {{ pageTitle }}
 
-{{ text }}
+{% trans %}Dear Sir or Madam,{% endtrans %}
 
-{% for name, values in data %}
-## {{ name }}
-{% for value in values %}
-- {{ value }}
-{% endfor %}
+{% trans %}A password reset was requested for your account.{% endtrans %}
+{% trans %}You can reset your password by following the link below:{% endtrans %}
 
-{% endfor %}
+{{ data.url|first }}
+
+{% trans %}If it wasn't you who requested this password reset, please let us know as soon as possible by replying to this email.{% endtrans %}
+
+{% trans %}Kind regards,{% endtrans %}
+
+Shared Service Center ICT
+servicedesk@ssc-ict.nl
+
 {% endautoescape %}
