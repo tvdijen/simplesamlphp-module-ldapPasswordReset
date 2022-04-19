@@ -89,7 +89,7 @@ class PasswordReset
      */
     public function enterEmail(Request $request): Template
     {
-        $t = new Template($this->config, 'ldapPasswordReset:enteremail.twig');
+        $t = new Template($this->config, 'ldapPasswordReset:enterEmail.twig');
         $t->data = [
             'mailSent' => false,
         ];
