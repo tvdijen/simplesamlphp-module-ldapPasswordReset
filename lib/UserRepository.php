@@ -6,6 +6,7 @@ use SimpleSAML\Assert\Assert;
 use SimpleSAML\{Configuration, Error, Logger};
 use SimpleSAML\Module\ldap\Utils\Ldap as LdapUtils;
 use Symfony\Component\Ldap\Entry;
+use Symfony\Component\Ldap\Exception\LdapException;
 use Symfony\Component\Ldap\Ldap;
 use Symfony\Component\Ldap\Security\LdapUserProvider;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
