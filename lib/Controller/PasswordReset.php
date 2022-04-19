@@ -213,7 +213,6 @@ class PasswordReset
         $t->data = [
             'AuthState' => $id,
             'passwordMismatch' => false,
-            'passwordChanged' => false,
             'emailAddress' => $state['ldapPasswordReset:subject'],
         ];
 
