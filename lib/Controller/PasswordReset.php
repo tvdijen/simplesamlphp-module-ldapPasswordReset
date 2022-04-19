@@ -224,10 +224,10 @@ class PasswordReset
 
             if (strcmp($newPassword, $retypePassword) === 0) {
                 $user = $this->userRepository->findUserByEmail($state['ldapPasswordReset:subject']);
-                try {
-                    $this->userRepository->updatePassword($user, $newPassword);
+                $result = $this->userRepository->updatePassword($user, $newPassword);
+                if ($result === true) {
                     $t->data['passwordChanged'] = true;
-                } catch (LdapException $e) {
+                } else {
                     $t->data['passwordChanged'] = false;
                     $t->errorMessage = $e->getMessage();
                 }
