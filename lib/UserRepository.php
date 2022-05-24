@@ -4,7 +4,7 @@ namespace SimpleSAML\Module\ldapPasswordReset;
 
 use SimpleSAML\Assert\Assert;
 use SimpleSAML\{Configuration, Error, Logger};
-use SimpleSAML\Module\ldap\Utils\Ldap as LdapUtils;
+use SimpleSAML\Module\ldap\Connector;
 use Symfony\Component\Ldap\Entry;
 use Symfony\Component\Ldap\Exception\LdapException;
 use Symfony\Component\Ldap\Ldap;
@@ -26,11 +26,8 @@ class UserRepository
     /** @var \SimpleSAML\Configuration */
     protected Configuration $moduleConfig;
 
-    /** @var \Symfony\Component\Ldap\Ldap */
-    protected Ldap $ldapObject;
-
-    /** @var \SimpleSAML\Module\ldap\Utils */
-    protected LdapUtils $ldapUtils;
+    /** @var \SimpleSAML\Module\ldap\Connector\Ldap */
+    protected Connector\Ldap $connector;
 
 
     /**
@@ -38,7 +35,6 @@ class UserRepository
     public function __construct()
     {
         $this->moduleConfig = Configuration::getOptionalConfig('module_ldapPasswordReset.php');
-        $this->ldapUtils = new LdapUtils();
 
         $encryption = $this->moduleConfig->getOptionalString('encryption', 'ssl');
         Assert::oneOf($encryption, ['none', 'ssl', 'tls']);
@@ -46,7 +42,7 @@ class UserRepository
         $version = $this->moduleConfig->getOptionalInteger('version', 3);
         Assert::positiveInteger($version);
 
-        $this->ldapObject = $this->ldapUtils->create(
+        $this->connector = new Connector\Ldap(
             $this->moduleConfig->getString('connection_string'),
             $encryption,
             $version,
@@ -73,7 +69,8 @@ class UserRepository
         $searchPassword = $this->moduleConfig->getOptionalString('search.password', null);
         Assert::nullOrnotWhitespaceOnly($searchPassword);
 
-        $ldapUserProvider = new LdapUserProvider($this->ldapObject, $searchBase, $searchUsername, $searchPassword, [], 'mail');
+        $ldap = new Ldap($this->connector->getAdapter());
+        $ldapUserProvider = new LdapUserProvider($ldap, $searchBase, $searchUsername, $searchPassword, [], 'mail');
 
         try {
             return $ldapUserProvider->loadUserByUsername($email)->getEntry();
@@ -100,7 +97,7 @@ class UserRepository
         Assert::nullOrnotWhitespaceOnly($searchPassword);
 
         try {
-            $this->ldapUtils->bind($this->ldapObject, $searchUsername, $searchPassword);
+            $this->connector->bind($searchUsername, $searchPassword);
         } catch (Error\Error $e) {
             throw new Error\Exception("Unable to bind using the configured search.username and search.password.");
         }
@@ -110,12 +107,6 @@ class UserRepository
             'unicodePwd' => [$userPassword],
         ]);
 
-        try {
-            $this->ldapObject->getEntryManager()->update($newEntry);
-            return true;
-        } catch (LdapException $e) {
-            Logger::warning($e->getMessage());
-            return false;
-        }
+        return $this->connector->updateEntry($newEntry);
     }
 }
