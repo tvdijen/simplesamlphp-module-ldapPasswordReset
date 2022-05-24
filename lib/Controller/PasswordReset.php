@@ -232,8 +232,12 @@ class PasswordReset
                 $user = $this->userRepository->findUserByEmail($state['ldapPasswordReset:subject']);
                 $result = $this->userRepository->updatePassword($user, $newPassword);
                 if ($result === true) {
-                    
+                    $t = new Template($this->config, 'ldapPasswordReset:passwordChanged.twig');
+                    if (isset($state['referer']) {
+                        $t->data['referer'] = $state['referer'];
+                    }
                     $t->data['passwordChanged'] = true;
+                    return $t;
                 } else {
                     $t->data['passwordChanged'] = false;
                     $t->errorMessage = $e->getMessage();
