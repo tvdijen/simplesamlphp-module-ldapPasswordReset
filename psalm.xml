@@ -5,7 +5,7 @@
     totallyTyped="false"
 >
     <projectFiles>
-        <directory name="src" />
+        <directory name="lib" />
         <directory name="tests" />
     </projectFiles>
 

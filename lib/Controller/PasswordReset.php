@@ -106,6 +106,8 @@ class PasswordReset
             $user = $this->userRepository->findUserByEmail($email);
 
             if ($user !== null) {
+                $this->logger::info(sprintf('A password reset was requested for user: %s', $email));
+
                 $tokenStorage = new TokenStorage($this->config);
                 $token = $tokenStorage->generateToken();
                 $session = $this->session->getTrackID();
@@ -116,6 +118,8 @@ class PasswordReset
 
                 $mailer = new MagicLink($this->config);
                 $mailer->sendMagicLink($email, $token);
+            } else {
+                $this->logger::warning(sprintf('A password reset was requested for non-existing user: %s', $email));
             }
         } else {
             $state = [];
@@ -234,6 +238,8 @@ class PasswordReset
                 $user = $this->userRepository->findUserByEmail($state['ldapPasswordReset:subject']);
                 $result = $this->userRepository->updatePassword($user, $newPassword);
                 if ($result === true) {
+                    $this->logger::info(sprintf('Password was reset for user: %s', $state['ldapPasswordReset:subject']));
+
                     $t = new Template($this->config, 'ldapPasswordReset:passwordChanged.twig');
                     if (isset($state['ldapPasswordReset:referer'])) {
                         $t->data['referer'] = $state['ldapPasswordReset:referer'];
@@ -241,6 +247,8 @@ class PasswordReset
                     $t->data['passwordChanged'] = true;
                     return $t;
                 } else {
+                    $this->warning::info(sprintf('Password reset has failed for user: %s', $state['ldapPasswordReset:subject']));
+
                     $t->data['passwordChanged'] = false;
                     $t->errorMessage = $e->getMessage();
                 }
