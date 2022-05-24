@@ -143,7 +143,15 @@ class PasswordReset
             Assert::keyExists($token, 'session');
             Assert::keyExists($token, 'AuthState');
 
-            if ($token['session'] === $this->session->getTrackID()) {
+            if (
+                $this->moduleConfig->getOptionalBoolean('lockBrowserSession', true)
+                && $token['session'] !== $this->session->getTrackID()
+            ) {
+                $this->logger::warning(sprintf(
+                    "Token '%s' was used in a different browser session then where it was requested from.",
+                    $t,
+                ));
+            } else {
                 $state = $this->authState::loadState($token['AuthState'], 'ldapPasswordReset:request', false);
                 if (($state !== false) && ($state['ldapPasswordReset:magicLinkRequested'] === true)) {
                     $this->logger::info(sprintf(
@@ -169,11 +177,6 @@ class PasswordReset
                        $t
                    ));
                 }
-            } else {
-                $this->logger::warning(sprintf(
-                    "Token '%s' was used in a different browser session then where it was requested from.",
-                    $t
-               ));
             }
         } else {
             $this->logger::warning(sprintf("Could not find token '%s' in token storage.", $t));
