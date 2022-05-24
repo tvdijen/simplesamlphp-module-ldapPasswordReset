@@ -105,13 +105,12 @@ class PasswordReset
                 $token = $tokenStorage->generateToken();
                 $session = $this->session->getTrackID();
 
-                $state = ['ldapPasswordReset:magicLinkRequested' => true];
+                $referer = null;
                 if ($request->server->has('HTTP_REFERER')) {
-                    $state['referer'] = $request->server->get('HTTP_REFERER');
+                    $referer = $request->server->get('HTTP_REFERER');
                 }
-                $id = Auth\State::saveState($state, 'ldapPasswordReset:request');
 
-                $tokenStorage->storeToken($token, $email, $session, $id);
+                $tokenStorage->storeToken($token, $email, $session, referer);
 
                 $mailer = new MagicLink($this->config);
                 $mailer->sendMagicLink($email, $token);
@@ -144,7 +143,7 @@ class PasswordReset
         if ($token !== null) {
             Assert::keyExists($token, 'mail');
             Assert::keyExists($token, 'session');
-            Assert::keyExists($token, 'AuthState');
+            Assert::keyExists($token, 'referer');
 
             if (
                 $this->moduleConfig->getOptionalBoolean('lockBrowserSession', true)
@@ -155,31 +154,23 @@ class PasswordReset
                     $t,
                 ));
             } else {
-                $state = $this->authState::loadState($token['AuthState'], 'ldapPasswordReset:request', false);
-                if (($state !== false) && ($state['ldapPasswordReset:magicLinkRequested'] === true)) {
-                    $this->logger::info(sprintf(
-                        "Preconditions for token '%s' were met. User '%s' may change it's password.",
-                        $t,
-                        $token['mail']
-                    ));
+                $this->logger::info(sprintf(
+                    "Preconditions for token '%s' were met. User '%s' may change it's password.",
+                    $t,
+                    $token['mail']
+                ));
 
-                    // All pre-conditions met - Allow user to change password
-                    $state['ldapPasswordReset:magicLinkValidated'] = true;
-                    $state['ldapPasswordReset:subject'] = $token['mail'];
+                // All pre-conditions met - Allow user to change password
+                $state['ldapPasswordReset:magicLinkValidated'] = true;
+                $state['ldapPasswordReset:subject'] = $token['mail'];
 
-                    // Invalidate token - It may be used only once to reset a password
-                    $tokenStorage->deleteToken($t);
+                // Invalidate token - It may be used only once to reset a password
+                $tokenStorage->deleteToken($t);
 
-                    $id = $this->authState::saveState($state, 'ldapPasswordReset:request');
-                    return new RedirectResponse(
-                        Module::getModuleURL('ldapPasswordReset/resetPassword', ['AuthState' => $id])
-                    );
-                } else {
-                   $this->logger::warning(sprintf(
-                       "Token '%s' was valid, but according to the AuthState it was never requested.",
-                       $t
-                   ));
-                }
+                $id = $this->authState::saveState($state, 'ldapPasswordReset:request');
+                return new RedirectResponse(
+                    Module::getModuleURL('ldapPasswordReset/resetPassword', ['AuthState' => $id])
+                );
             }
         } else {
             $this->logger::warning(sprintf("Could not find token '%s' in token storage.", $t));
