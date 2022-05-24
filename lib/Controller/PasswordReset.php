@@ -106,6 +106,9 @@ class PasswordReset
                 $session = $this->session->getTrackID();
 
                 $state = ['ldapPasswordReset:magicLinkRequested' => true];
+                if (isset($request->server->has('HTTP_REFERER'))) {
+                    $state['referer'] = $request->server->get('HTTP_REFERER');
+                }
                 $id = Auth\State::saveState($state, 'ldapPasswordReset:request');
 
                 $tokenStorage->storeToken($token, $email, $session, $id);
@@ -229,6 +232,7 @@ class PasswordReset
                 $user = $this->userRepository->findUserByEmail($state['ldapPasswordReset:subject']);
                 $result = $this->userRepository->updatePassword($user, $newPassword);
                 if ($result === true) {
+                    
                     $t->data['passwordChanged'] = true;
                 } else {
                     $t->data['passwordChanged'] = false;
