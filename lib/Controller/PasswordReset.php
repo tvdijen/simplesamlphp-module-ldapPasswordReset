@@ -130,7 +130,7 @@ class PasswordReset
                 $state['referer'] = $request->server->get('HTTP_REFERER');
             }
 
-            $t['AuthState'] = $this->authState::saveState($state, 'ldapPasswordReset:request');
+            $t->data['AuthState'] = $this->authState::saveState($state, 'ldapPasswordReset:request');
         }
 
         return $t;
