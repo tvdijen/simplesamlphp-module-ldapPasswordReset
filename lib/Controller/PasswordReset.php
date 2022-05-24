@@ -118,7 +118,7 @@ class PasswordReset
                     $referer = $state['referer'];
                 }
 
-                $tokenStorage->storeToken($token, $email, $session, referer);
+                $tokenStorage->storeToken($token, $email, $session, $referer);
 
                 $mailer = new MagicLink($this->config);
                 $mailer->sendMagicLink($email, $token);
