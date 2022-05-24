@@ -238,7 +238,10 @@ class PasswordReset
                 $user = $this->userRepository->findUserByEmail($state['ldapPasswordReset:subject']);
                 $result = $this->userRepository->updatePassword($user, $newPassword);
                 if ($result === true) {
-                    $this->logger::info(sprintf('Password was reset for user: %s', $state['ldapPasswordReset:subject']));
+                    $this->logger::info(sprintf(
+                        'Password was reset for user: %s',
+                        $state['ldapPasswordReset:subject'])
+                    );
 
                     $t = new Template($this->config, 'ldapPasswordReset:passwordChanged.twig');
                     if (isset($state['ldapPasswordReset:referer'])) {
@@ -247,7 +250,10 @@ class PasswordReset
                     $t->data['passwordChanged'] = true;
                     return $t;
                 } else {
-                    $this->warning::info(sprintf('Password reset has failed for user: %s', $state['ldapPasswordReset:subject']));
+                    $this->warning::info(sprintf(
+                        'Password reset has failed for user: %s',
+                        $state['ldapPasswordReset:subject'])
+                    );
 
                     $t->data['passwordChanged'] = false;
                     $t->errorMessage = $e->getMessage();
