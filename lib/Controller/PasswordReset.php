@@ -110,15 +110,9 @@ class PasswordReset
                 $token = $tokenStorage->generateToken();
                 $session = $this->session->getTrackID();
 
-                $referer = null;
-
                 /** @var array $state */
                 $state = $this->authState::loadState($id, 'ldapPasswordReset:request', false);
-                if (isset($state['referer'])) {
-                    $referer = $state['referer'];
-                }
-
-                $tokenStorage->storeToken($token, $email, $session, $referer);
+                $tokenStorage->storeToken($token, $email, $session, $state['ldapPasswordReset:referer'] ?? null);
 
                 $mailer = new MagicLink($this->config);
                 $mailer->sendMagicLink($email, $token);
@@ -127,7 +121,7 @@ class PasswordReset
             $state = [];
 
             if ($request->server->has('HTTP_REFERER')) {
-                $state['referer'] = $request->server->get('HTTP_REFERER');
+                $state['ldapPasswordReset:referer'] = $request->server->get('HTTP_REFERER');
             }
 
             $t->data['AuthState'] = $this->authState::saveState($state, 'ldapPasswordReset:request');
@@ -179,6 +173,7 @@ class PasswordReset
                 // All pre-conditions met - Allow user to change password
                 $state['ldapPasswordReset:magicLinkValidated'] = true;
                 $state['ldapPasswordReset:subject'] = $token['mail'];
+                $state['ldapPasswordReset:referer'] = $token['referer'];
 
                 // Invalidate token - It may be used only once to reset a password
                 $tokenStorage->deleteToken($t);
@@ -240,8 +235,8 @@ class PasswordReset
                 $result = $this->userRepository->updatePassword($user, $newPassword);
                 if ($result === true) {
                     $t = new Template($this->config, 'ldapPasswordReset:passwordChanged.twig');
-                    if (isset($state['referer'])) {
-                        $t->data['referer'] = $state['referer'];
+                    if (isset($state['ldapPasswordReset:referer'])) {
+                        $t->data['referer'] = $state['ldapPasswordReset:referer'];
                     }
                     $t->data['passwordChanged'] = true;
                     return $t;

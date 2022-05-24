@@ -55,10 +55,10 @@ class TokenStorage
      * @param string $token
      * @param string $mail
      * @param string $session
-     * @param string $referer
+     * @param string|null $referer
      * @return void
      */
-    public function storeToken(string $token, string $mail, string $session, string $referer): void
+    public function storeToken(string $token, string $mail, string $session, ?string $referer): void
     {
         // TODO: Make expiration configurable
         $expire = time() + (60 * 15); // 15 minutes
