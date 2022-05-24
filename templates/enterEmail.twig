@@ -20,7 +20,7 @@
     <h1>{{ 'Enter your e-mail address'|trans }}</h1>
 
     <div class="center">
-        <form class="pure-form pure-form-aligned center-form" action="{{ moduleURL('ldapPasswordReset/enterEmail', {'AuthState': AuthState}) }}" method="post" name="f">
+        <form class="pure-form pure-form-aligned center-form" action="{% if AuthState is defined %}{{ moduleURL('ldapPasswordReset/enterEmail', {'AuthState': AuthState}) }}{% else %}{{ moduleURL('ldapPasswordReset/enterEmail') }}{% endif %}" method="post" name="f">
             <div class="form-align">
 
                 <div class="pure-control-group">
