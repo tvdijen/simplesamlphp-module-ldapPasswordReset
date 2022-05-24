@@ -95,6 +95,11 @@ class PasswordReset
         ];
 
         if ($request->request->has('submit_button')) {
+            $id = $request->query->get('AuthState', null);
+            if ($id === null) {
+                throw new Error\BadRequest('Missing AuthState parameter.');
+            }
+
             $t->data['mailSent'] = true;
 
             $email = $request->request->get('email');
@@ -106,8 +111,11 @@ class PasswordReset
                 $session = $this->session->getTrackID();
 
                 $referer = null;
-                if ($request->server->has('HTTP_REFERER')) {
-                    $referer = $request->server->get('HTTP_REFERER');
+
+                /** @var array $state */
+                $state = $this->authState::loadState($id, 'ldapPasswordReset:request', false);
+                if (isset($state['referer'])) {
+                    $referer = $state['referer'];
                 }
 
                 $tokenStorage->storeToken($token, $email, $session, referer);
@@ -115,6 +123,14 @@ class PasswordReset
                 $mailer = new MagicLink($this->config);
                 $mailer->sendMagicLink($email, $token);
             }
+        } else {
+            $state = [];
+
+            if ($request->server->has('HTTP_REFERER')) {
+                $state['referer'] = $request->server->get('HTTP_REFERER');
+            }
+
+            $t['AuthState'] = $this->authState::saveState($state, 'ldapPasswordReset:request');
         }
 
         return $t;
