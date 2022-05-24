@@ -44,5 +44,5 @@ $config = [
     // Lock the magic link to the user's browser session. An error message
     // will be shown when the magic link is used from another browser.
     // The default is TRUE 
-    'lockBrowserSession' => true
+    'lockBrowserSession' => true,
 ];
