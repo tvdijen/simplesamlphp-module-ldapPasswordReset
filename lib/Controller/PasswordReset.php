@@ -183,6 +183,7 @@ class PasswordReset
                 $state = [
                     'ldapPasswordReset:magicLinkValidated' => true,
                     'ldapPasswordReset:subject' => $token['mail'],
+                    'ldapPasswordReset:session' => $token['session'],
                     'ldapPasswordReset:referer' => $token['referer'],
                 ];
 
@@ -256,7 +257,12 @@ class PasswordReset
                     ));
 
                     $t = new Template($this->config, 'ldapPasswordReset:passwordChanged.twig');
-                    if (isset($state['ldapPasswordReset:referer'])) {
+                    if (
+                        isset($state['ldapPasswordReset:referer'])
+                        && ($state['session'] === $this->session->getTrackID())
+                    ) {
+                        // If this isn't the same browser, it makes no sense to get back to the
+                        // previous authentication-flow. It will fail relentlessly
                         $t->data['referer'] = $state['ldapPasswordReset:referer'];
                     }
                     $t->data['passwordChanged'] = true;
