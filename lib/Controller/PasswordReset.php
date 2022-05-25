@@ -95,6 +95,7 @@ class PasswordReset
         ];
 
         if ($request->request->has('submit_button')) {
+            /** @psalm-var string|null $id */
             $id = $request->query->get('AuthState', null);
             if ($id === null) {
                 throw new Error\BadRequest('Missing AuthState parameter.');
@@ -102,7 +103,10 @@ class PasswordReset
 
             $t->data['mailSent'] = true;
 
+            /** @psalm-var string $email */
             $email = $request->request->get('email');
+            Assert::stringNotEmpty($email);
+
             $user = $this->userRepository->findUserByEmail($email);
 
             if ($user !== null) {
@@ -146,6 +150,7 @@ class PasswordReset
             throw new Error\BadRequest('Missing token.');
         }
 
+        /** @psalm-var string $t */
         $t = $request->query->get('t');
         Assert::uuid($t, 'Invalid token provided.', Error\BadRequest::class);
 
@@ -175,9 +180,11 @@ class PasswordReset
                 ));
 
                 // All pre-conditions met - Allow user to change password
-                $state['ldapPasswordReset:magicLinkValidated'] = true;
-                $state['ldapPasswordReset:subject'] = $token['mail'];
-                $state['ldapPasswordReset:referer'] = $token['referer'];
+                $state = [
+                    'ldapPasswordReset:magicLinkValidated' => true,
+                    'ldapPasswordReset:subject' => $token['mail'],
+                    'ldapPasswordReset:referer' => $token['referer'],
+                ];
 
                 // Invalidate token - It may be used only once to reset a password
                 $tokenStorage->deleteToken($t);
@@ -213,6 +220,7 @@ class PasswordReset
      */
     public function resetPassword(Request $request): Template
     {
+        /** @psalm-var string|null $id */
         $id = $request->query->get('AuthState', null);
         if ($id === null) {
             throw new Error\BadRequest('Missing AuthState parameter.');
@@ -231,17 +239,21 @@ class PasswordReset
         // Check if the submit-button was hit, or whether this is a first visit
         if ($request->request->has('submit_button')) {
             // See if the submitted passwords match
+            /** @psalm-var string $newPassword */
             $newPassword = $request->request->get('new-password');
+            /** @psalm-var string $retypePassword */
             $retypePassword = $request->request->get('password');
 
             if (strcmp($newPassword, $retypePassword) === 0) {
                 $user = $this->userRepository->findUserByEmail($state['ldapPasswordReset:subject']);
+                Assert::notNull($user); // Must exist
+
                 $result = $this->userRepository->updatePassword($user, $newPassword);
                 if ($result === true) {
                     $this->logger::info(sprintf(
                         'Password was reset for user: %s',
-                        $state['ldapPasswordReset:subject'])
-                    );
+                        $state['ldapPasswordReset:subject']
+                    ));
 
                     $t = new Template($this->config, 'ldapPasswordReset:passwordChanged.twig');
                     if (isset($state['ldapPasswordReset:referer'])) {
@@ -250,13 +262,12 @@ class PasswordReset
                     $t->data['passwordChanged'] = true;
                     return $t;
                 } else {
-                    $this->warning::info(sprintf(
+                    $this->logger::warning::info(sprintf(
                         'Password reset has failed for user: %s',
-                        $state['ldapPasswordReset:subject'])
-                    );
+                        $state['ldapPasswordReset:subject']
+                    ));
 
                     $t->data['passwordChanged'] = false;
-                    $t->errorMessage = $e->getMessage();
                 }
             } else {
                 $t->data['passwordMismatch'] = true;
