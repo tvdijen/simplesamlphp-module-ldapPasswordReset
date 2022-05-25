@@ -268,7 +268,7 @@ class PasswordReset
                     $t->data['passwordChanged'] = true;
                     return $t;
                 } else {
-                    $this->logger::warning::info(sprintf(
+                    $this->logger::warning(sprintf(
                         'Password reset has failed for user: %s',
                         $state['ldapPasswordReset:subject']
                     ));
