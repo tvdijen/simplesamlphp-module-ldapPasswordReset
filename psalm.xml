@@ -4,7 +4,7 @@
     useDocblockTypes="true"
 >
     <projectFiles>
-        <directory name="lib" />
+        <directory name="src" />
         <directory name="tests" />
     </projectFiles>
 
