@@ -107,8 +107,10 @@ class PasswordReset
             $email = $request->request->get('email');
             Assert::stringNotEmpty($email);
 
-            $user = $this->userRepository->findUserByEmail($email);
+            /** @var array $state */
+            $state = $this->authState::loadState($id, 'ldapPasswordReset:request', false);
 
+            $user = $this->userRepository->findUserByEmail($email);
             if ($user !== null) {
                 $this->logger::info(sprintf('A password reset was requested for user: %s', $email));
 
@@ -116,8 +118,6 @@ class PasswordReset
                 $token = $tokenStorage->generateToken();
                 $session = $this->session->getTrackID();
 
-                /** @var array $state */
-                $state = $this->authState::loadState($id, 'ldapPasswordReset:request', false);
                 $tokenStorage->storeToken($token, $email, $session, $state['ldapPasswordReset:referer'] ?? null);
 
                 $mailer = new MagicLink($this->config);
@@ -131,10 +131,9 @@ class PasswordReset
             if ($request->server->has('HTTP_REFERER')) {
                 $state['ldapPasswordReset:referer'] = $request->server->get('HTTP_REFERER');
             }
-
-            $t->data['AuthState'] = $this->authState::saveState($state, 'ldapPasswordReset:request');
         }
 
+        $t->data['AuthState'] = $this->authState::saveState($state, 'ldapPasswordReset:request');
         return $t;
     }
 
