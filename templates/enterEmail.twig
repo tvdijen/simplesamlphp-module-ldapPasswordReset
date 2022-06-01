@@ -2,6 +2,10 @@
 
 {% extends "@core/base.twig" %}
 
+{% block preload %}
+    <link rel="stylesheet" href="{{ asset('css/ldapPasswordReset.css', 'ldapPasswordReset') }}">
+{% endblock %}
+
 {% block content %}
     {%- if not isProduction %}
 
@@ -12,13 +16,13 @@
 
     {%- if mailSent %}
 
-    <h1>{{ 'Please check your inbox.'|trans }}</h1>
+    <h1>{{ 'Please check your inbox'|trans }}</h1>
 
     {% set retryURL = moduleURL('ldapPasswordReset/enterMail', {'AuthState': AuthState}) %}
     <div class="center">
         <div class="align_left">
         {% trans %}An e-mail was sent to you. Please check your inbox.{% endtrans %}<br>
-        {{ "If you haven't received the e-mail, please check your spam-folder or <a href=\"%RETRYURL%\">try again</a>"|trans({'%RETRYURL%': retryURL})|raw }}
+        {{ "If you haven't received the e-mail, please check your spam-folder or <a href=\"%RETRYURL%\">try again</a>."|trans({'%RETRYURL%': retryURL})|raw }}
         </div>
     </div>
     {% else %}
