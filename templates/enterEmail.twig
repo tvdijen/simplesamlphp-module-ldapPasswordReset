@@ -18,7 +18,7 @@
 
     <h1>{{ 'Please check your inbox'|trans }}</h1>
 
-    {% set retryURL = moduleURL('ldapPasswordReset/enterMail', {'AuthState': AuthState}) %}
+    {% set retryURL = moduleURL('ldapPasswordReset/enterEmail', {'AuthState': AuthState}) %}
     <div class="center">
         <div class="align_left">
         {% trans %}An e-mail was sent to you. Please check your inbox.{% endtrans %}<br>
