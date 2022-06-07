@@ -94,6 +94,7 @@ class PasswordReset
             'mailSent' => false,
         ];
 
+        $state = [];
         if ($request->request->has('submit_button')) {
             /** @psalm-var string|null $id */
             $id = $request->query->get('AuthState', null);
@@ -112,25 +113,29 @@ class PasswordReset
 
             $user = $this->userRepository->findUserByEmail($email);
             if ($user !== null) {
-                $this->logger::info(sprintf('A password reset was requested for user: %s', $email));
+                $this->logger::info(sprintf('ldapPasswordReset: a password reset was requested for user %s', $email));
 
                 $tokenStorage = new TokenStorage($this->config);
                 $token = $tokenStorage->generateToken();
                 $session = $this->session->getTrackID();
 
                 $tokenStorage->storeToken($token, $email, $session, $state['ldapPasswordReset:referer'] ?? null);
+                $this->logger::debug(sprintf('ldapPasswordReset: token %s was stored for %s', $token, $email));
 
                 $mailer = new MagicLink($this->config);
                 $mailer->sendMagicLink($email, $token);
+                $this->logger::info(sprintf('ldapPasswordReset: token %s was e-mailed to user %s', $token, $email));
             } else {
-                $this->logger::warning(sprintf('A password reset was requested for non-existing user: %s', $email));
+                $this->logger::warning(sprintf('ldapPasswordReset: a password reset was requested for non-existing user %s', $email));
             }
+/**
         } else {
             $state = [];
 
             if ($request->server->has('HTTP_REFERER')) {
                 $state['ldapPasswordReset:referer'] = $request->server->get('HTTP_REFERER');
             }
+*/
         }
 
         $t->data['AuthState'] = $this->authState::saveState($state, 'ldapPasswordReset:request');
@@ -161,8 +166,9 @@ class PasswordReset
         if ($token !== null) {
             Assert::keyExists($token, 'mail');
             Assert::keyExists($token, 'session');
-            Assert::keyExists($token, 'referer');
+//            Assert::keyExists($token, 'referer');
 
+/**
             if (
                 $this->moduleConfig->getOptionalBoolean('lockBrowserSession', true)
                 && $token['session'] !== $this->session->getTrackID()
@@ -172,8 +178,9 @@ class PasswordReset
                     $t,
                 ));
             } else {
+*/
                 $this->logger::info(sprintf(
-                    "Preconditions for token '%s' were met. User '%s' may change it's password.",
+                    "ldapPasswordReset: pre-conditions for token '%s' were met. User '%s' may change it's password.",
                     $t,
                     $token['mail']
                 ));
@@ -183,7 +190,7 @@ class PasswordReset
                     'ldapPasswordReset:magicLinkValidated' => true,
                     'ldapPasswordReset:subject' => $token['mail'],
                     'ldapPasswordReset:session' => $token['session'],
-                    'ldapPasswordReset:referer' => $token['referer'],
+//                    'ldapPasswordReset:referer' => $token['referer'],
                 ];
 
                 // Invalidate token - It may be used only once to reset a password
@@ -193,11 +200,12 @@ class PasswordReset
                 return new RedirectResponse(
                     Module::getModuleURL('ldapPasswordReset/resetPassword', ['AuthState' => $id])
                 );
-            }
+//            }
         } else {
-            $this->logger::warning(sprintf("Could not find token '%s' in token storage.", $t));
+            $this->logger::warning(sprintf("ldapPasswordReset: Could not find token '%s' in token storage.", $t));
         }
 
+        $this->logger::debug(sprintf("ldapPasswordReset: an invalid magic link was used: %s", $t));
         return new RedirectResponse(Module::getModuleURL('ldapPasswordReset/invalidMagicLink'));
     }
 
@@ -238,6 +246,8 @@ class PasswordReset
 
         // Check if the submit-button was hit, or whether this is a first visit
         if ($request->request->has('submit_button')) {
+            $this->logger::debug(sprintf('ldapPasswordReset: a new password was entered for user %s', $state['ldapPasswordReset:subject']));
+
             // See if the submitted passwords match
             /** @psalm-var string $newPassword */
             $newPassword = $request->request->get('new-password');
@@ -245,6 +255,8 @@ class PasswordReset
             $retypePassword = $request->request->get('password');
 
             if (strcmp($newPassword, $retypePassword) === 0) {
+                $this->logger::debug(sprintf('ldapPasswordReset: new matching passwords were entered for user %s', $state['ldapPasswordReset:subject']));
+
                 $user = $this->userRepository->findUserByEmail($state['ldapPasswordReset:subject']);
                 Assert::notNull($user); // Must exist
 
@@ -256,6 +268,7 @@ class PasswordReset
                     ));
 
                     $t = new Template($this->config, 'ldapPasswordReset:passwordChanged.twig');
+/*
                     if (
                         isset($state['ldapPasswordReset:referer'])
                         && ($state['session'] === $this->session->getTrackID())
@@ -264,6 +277,7 @@ class PasswordReset
                         // previous authentication-flow. It will fail relentlessly
                         $t->data['referer'] = $state['ldapPasswordReset:referer'];
                     }
+*/
                     $t->data['passwordChanged'] = true;
                     return $t;
                 } else {
@@ -275,6 +289,7 @@ class PasswordReset
                     $t->data['passwordChanged'] = false;
                 }
             } else {
+                $this->logger::debug(sprintf('ldapPasswordReset: mismatching passwords were entered for user %s', $state['ldapPasswordReset']));
                 $t->data['passwordMismatch'] = true;
             }
         }

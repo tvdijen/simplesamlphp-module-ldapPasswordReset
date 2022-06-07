@@ -73,7 +73,7 @@ class UserRepository
         $ldapUserProvider = new LdapUserProvider($ldap, $searchBase, $searchUsername, $searchPassword, [], 'mail');
 
         try {
-            return $ldapUserProvider->loadUserByUsername($email)->getEntry();
+            return $ldapUserProvider->loadUserByIdentifier($email)->getEntry();
         } catch (UserNotFoundException $e) {
             // We haven't found the user
             return null;
