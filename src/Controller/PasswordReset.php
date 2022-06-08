@@ -289,7 +289,7 @@ class PasswordReset
                     $t->data['passwordChanged'] = false;
                 }
             } else {
-                $this->logger::debug(sprintf('ldapPasswordReset: mismatching passwords were entered for user %s', $state['ldapPasswordReset']));
+                $this->logger::debug(sprintf('ldapPasswordReset: mismatching passwords were entered for user %s', $state['ldapPasswordReset:subject']));
                 $t->data['passwordMismatch'] = true;
             }
         }
