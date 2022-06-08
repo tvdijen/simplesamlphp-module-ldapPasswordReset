@@ -190,11 +190,12 @@ class PasswordReset
                     'ldapPasswordReset:magicLinkValidated' => true,
                     'ldapPasswordReset:subject' => $token['mail'],
                     'ldapPasswordReset:session' => $token['session'],
+                    'ldapPasswordReset:token' => $t,
 //                    'ldapPasswordReset:referer' => $token['referer'],
                 ];
 
                 // Invalidate token - It may be used only once to reset a password
-                $tokenStorage->deleteToken($t);
+//                $tokenStorage->deleteToken($t);
 
                 $id = $this->authState::saveState($state, 'ldapPasswordReset:request');
                 return new RedirectResponse(
@@ -279,6 +280,9 @@ class PasswordReset
                     }
 */
                     $t->data['passwordChanged'] = true;
+$tokenStorage = new TokenStorage($this->config);
+                // Invalidate token - It may be used only once to reset a password
+                $tokenStorage->deleteToken($state['ldapPasswordReset:token']);
                     return $t;
                 } else {
                     $this->logger::warning(sprintf(
