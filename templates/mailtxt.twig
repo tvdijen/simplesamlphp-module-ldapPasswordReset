@@ -4,7 +4,8 @@
 {% trans %}Dear Sir or Madam,{% endtrans %}
 
 {% trans %}A password reset was requested for your account.{% endtrans %}
-{% trans %}You can reset your password by following the link below:{% endtrans %}
+{% trans %}You can reset your password by following the link below.{% endtrans %}
+{{ 'This link can be used until %TIMESTAMP%.'|trans({'%TIMESTAMP%', data.validUntil|first|date('D, d M Y H:i:s O') }) }}
 
 {{ data.url|first }}
 

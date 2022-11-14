@@ -11,7 +11,9 @@ use SimpleSAML\Module\ldapPasswordReset\UserRepository;
 use SimpleSAML\XHTML\Template;
 use Symfony\Component\HttpFoundation\{RedirectResponse, Request};
 
+use function date;
 use function sprintf;
+use function time;
 
 /**
  * Controller class for the ldapPasswordReset module.
@@ -118,24 +120,37 @@ class PasswordReset
                 $tokenStorage = new TokenStorage($this->config);
                 $token = $tokenStorage->generateToken();
                 $session = $this->session->getTrackID();
+                $validUntil = time() + ($this->moduleConfig->getOptionalInteger('magicLinkExpiration', 15) * 60);
 
-                $tokenStorage->storeToken($token, $email, $session, $state['ldapPasswordReset:referer'] ?? null);
+                $tokenStorage->storeToken(
+                    $token,
+                    $email,
+                    $session,
+                    $validUntil,
+                    $state['ldapPasswordReset:referer'] ?? null
+                );
                 $this->logger::debug(sprintf('ldapPasswordReset: token %s was stored for %s', $token, $email));
 
                 $mailer = new MagicLink($this->config);
-                $mailer->sendMagicLink($email, $token);
-                $this->logger::info(sprintf('ldapPasswordReset: token %s was e-mailed to user %s', $token, $email));
+                $mailer->sendMagicLink($email, $token, $validUntil);
+                $this->logger::info(sprintf(
+                    'ldapPasswordReset: token %s was e-mailed to user %s (valid until %s)',
+                    $token,
+                    $email,
+                    date(DATE_RFC2822, $validUntil))
+                );
             } else {
-                $this->logger::warning(sprintf('ldapPasswordReset: a password reset was requested for non-existing user %s', $email));
+                $this->logger::warning(sprintf(
+                    'ldapPasswordReset: a password reset was requested for non-existing user %s',
+                    $email
+                ));
             }
-/**
         } else {
             $state = [];
 
             if ($request->server->has('HTTP_REFERER')) {
                 $state['ldapPasswordReset:referer'] = $request->server->get('HTTP_REFERER');
             }
-*/
         }
 
         $t->data['AuthState'] = $this->authState::saveState($state, 'ldapPasswordReset:request');
@@ -166,9 +181,8 @@ class PasswordReset
         if ($token !== null) {
             Assert::keyExists($token, 'mail');
             Assert::keyExists($token, 'session');
-//            Assert::keyExists($token, 'referer');
+            Assert::keyExists($token, 'referer');
 
-/**
             if (
                 $this->moduleConfig->getOptionalBoolean('lockBrowserSession', true)
                 && $token['session'] !== $this->session->getTrackID()
@@ -178,7 +192,6 @@ class PasswordReset
                     $t,
                 ));
             } else {
-*/
                 $this->logger::info(sprintf(
                     "ldapPasswordReset: pre-conditions for token '%s' were met. User '%s' may change it's password.",
                     $t,
@@ -191,7 +204,7 @@ class PasswordReset
                     'ldapPasswordReset:subject' => $token['mail'],
                     'ldapPasswordReset:session' => $token['session'],
                     'ldapPasswordReset:token' => $t,
-//                    'ldapPasswordReset:referer' => $token['referer'],
+                    'ldapPasswordReset:referer' => $token['referer'],
                 ];
 
                 // Invalidate token - It may be used only once to reset a password
@@ -201,7 +214,7 @@ class PasswordReset
                 return new RedirectResponse(
                     Module::getModuleURL('ldapPasswordReset/resetPassword', ['AuthState' => $id])
                 );
-//            }
+            }
         } else {
             $this->logger::warning(sprintf("ldapPasswordReset: Could not find token '%s' in token storage.", $t));
         }
@@ -247,7 +260,10 @@ class PasswordReset
 
         // Check if the submit-button was hit, or whether this is a first visit
         if ($request->request->has('submit_button')) {
-            $this->logger::debug(sprintf('ldapPasswordReset: a new password was entered for user %s', $state['ldapPasswordReset:subject']));
+            $this->logger::debug(sprintf(
+                'ldapPasswordReset: a new password was entered for user %s',
+                $state['ldapPasswordReset:subject'])
+            );
 
             // See if the submitted passwords match
             /** @psalm-var string $newPassword */
@@ -256,7 +272,10 @@ class PasswordReset
             $retypePassword = $request->request->get('password');
 
             if (strcmp($newPassword, $retypePassword) === 0) {
-                $this->logger::debug(sprintf('ldapPasswordReset: new matching passwords were entered for user %s', $state['ldapPasswordReset:subject']));
+                $this->logger::debug(sprintf(
+                    'ldapPasswordReset: new matching passwords were entered for user %s',
+                    $state['ldapPasswordReset:subject']
+                ));
 
                 $user = $this->userRepository->findUserByEmail($state['ldapPasswordReset:subject']);
                 Assert::notNull($user); // Must exist
@@ -269,7 +288,6 @@ class PasswordReset
                     ));
 
                     $t = new Template($this->config, 'ldapPasswordReset:passwordChanged.twig');
-/*
                     if (
                         isset($state['ldapPasswordReset:referer'])
                         && ($state['session'] === $this->session->getTrackID())
@@ -278,11 +296,12 @@ class PasswordReset
                         // previous authentication-flow. It will fail relentlessly
                         $t->data['referer'] = $state['ldapPasswordReset:referer'];
                     }
-*/
                     $t->data['passwordChanged'] = true;
-$tokenStorage = new TokenStorage($this->config);
-                // Invalidate token - It may be used only once to reset a password
-                $tokenStorage->deleteToken($state['ldapPasswordReset:token']);
+
+                    // Invalidate token - It may be used only once to reset a password
+                    $tokenStorage = new TokenStorage($this->config);
+                    $tokenStorage->deleteToken($state['ldapPasswordReset:token']);
+
                     return $t;
                 } else {
                     $this->logger::warning(sprintf(
@@ -293,7 +312,10 @@ $tokenStorage = new TokenStorage($this->config);
                     $t->data['passwordChanged'] = false;
                 }
             } else {
-                $this->logger::debug(sprintf('ldapPasswordReset: mismatching passwords were entered for user %s', $state['ldapPasswordReset:subject']));
+                $this->logger::debug(sprintf(
+                    'ldapPasswordReset: mismatching passwords were entered for user %s',
+                    $state['ldapPasswordReset:subject']
+                ));
                 $t->data['passwordMismatch'] = true;
             }
         }

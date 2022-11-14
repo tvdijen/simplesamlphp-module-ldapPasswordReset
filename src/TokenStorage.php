@@ -38,14 +38,14 @@ class TokenStorage
      */
     public function __construct(Configuration $config)
     {
-        $this->config = $config;
-        $this->moduleConfig = Configuration::getOptionalConfig('module_ldappasswordreset.php');
-
         $store = Store\StoreFactory::getInstance($config->getString('store.type'));
         if ($store === false) {
             throw new Exception('Using `phpsession` as a store is not supported when using this module.');
         }
+
         $this->store = $store;
+        $this->config = $config;
+
     }
 
 
@@ -55,19 +55,17 @@ class TokenStorage
      * @param string $token
      * @param string $mail
      * @param string $session
+     * @param int $validUntil
      * @param string|null $referer
      * @return void
      */
-    public function storeToken(string $token, string $mail, string $session, ?string $referer): void
+    public function storeToken(string $token, string $mail, string $session, int $validUntil, ?string $referer): void
     {
-        // TODO: Make expiration configurable
-        $expire = time() + (60 * 15); // 15 minutes
-
         $this->store->set(
             'magiclink',
             $token,
             ['mail' => $mail, 'session' => $session, 'referer' => $referer],
-            $expire,
+            $validUntil,
         );
     }
 

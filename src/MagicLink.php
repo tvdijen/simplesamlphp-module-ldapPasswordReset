@@ -34,9 +34,10 @@ class MagicLink
      *
      * @param string $email
      * @param string $token
+     * @param int $validUntil
      * @return void
      */
-    public function sendMagicLink(string $email, string $token): void
+    public function sendMagicLink(string $email, string $token, int $validUntil): void
     {
         $url = Module::getModuleURL('ldapPasswordReset/validateMagicLink', ['t' => $token]);
 
@@ -47,7 +48,7 @@ class MagicLink
             'ldapPasswordReset:mailtxt.twig',
             'ldapPasswordReset:mailhtml.twig'
         );
-        $mail->setData(['url' => $url]);
+        $mail->setData(['url' => $url, 'validUntil' => $validUntil]);
         $mail->setText('{url}');
         $mail->send();
     }

@@ -43,6 +43,10 @@ $config = [
 
     // Lock the magic link to the user's browser session. An error message
     // will be shown when the magic link is used from another browser.
-    // The default is TRUE 
+    // The default is TRUE
     'lockBrowserSession' => true,
+
+    // The number of minutes the magic link can be used
+    // The default is 15 minutes
+    'magicLinkExpiration' => 15,
 ];

@@ -24,7 +24,8 @@
           <br /><br />
           {% trans %}A password reset was requested for your account.{% endtrans %}
           <br />
-          {% trans %}You can reset your password by following the link below:{% endtrans %}
+          {% trans %}You can reset your password by following the link below.{% endtrans %}
+          {{ 'This link can be used until %TIMESTAMP%.'|trans({'%TIMESTAMP%', data.validUntil|first|date('D, d M Y H:i:s O') }) }}
           <br /><br />
           <pre><a href="{{ data.url|first }}">{{ data.url|first }}</a></pre>
           <br /><br />
