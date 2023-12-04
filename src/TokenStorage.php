@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SimpleSAML\Module\ldapPasswordReset;
 
 use Exception;
@@ -45,7 +47,6 @@ class TokenStorage
 
         $this->store = $store;
         $this->config = $config;
-
     }
 
 

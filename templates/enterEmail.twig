@@ -20,7 +20,7 @@
 
     {% set retryURL = moduleURL('ldapPasswordReset/enterEmail', {'AuthState': AuthState}) %}
     <div class="center">
-        <div class="align_left">
+        <div class="align-left">
         {% trans %}An e-mail was sent to you. Please check your inbox.{% endtrans %}<br>
         {{ "If you haven't received the e-mail, please check your spam-folder or <a href=\"%RETRYURL%\">try again</a>."|trans({'%RETRYURL%': retryURL})|raw }}
         </div>

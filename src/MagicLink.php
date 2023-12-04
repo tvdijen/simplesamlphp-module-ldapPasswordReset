@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SimpleSAML\Module\ldapPasswordReset;
 
-use PHPMailer\PHPMailer\PHPMailer;
 use SimpleSAML\{Configuration, Module, Utils};
 
 /**

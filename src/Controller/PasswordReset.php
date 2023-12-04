@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SimpleSAML\Module\ldapPasswordReset\Controller;
 
 use Exception;
@@ -137,8 +139,8 @@ class PasswordReset
                     'ldapPasswordReset: token %s was e-mailed to user %s (valid until %s)',
                     $token,
                     $email,
-                    date(DATE_RFC2822, $validUntil))
-                );
+                    date(DATE_RFC2822, $validUntil)
+                ));
             } else {
                 $this->logger::warning(sprintf(
                     'ldapPasswordReset: a password reset was requested for non-existing user %s',
@@ -262,8 +264,8 @@ class PasswordReset
         if ($request->request->has('submit_button')) {
             $this->logger::debug(sprintf(
                 'ldapPasswordReset: a new password was entered for user %s',
-                $state['ldapPasswordReset:subject'])
-            );
+                $state['ldapPasswordReset:subject']
+            ));
 
             // See if the submitted passwords match
             /** @psalm-var string $newPassword */
@@ -280,6 +282,7 @@ class PasswordReset
                 $user = $this->userRepository->findUserByEmail($state['ldapPasswordReset:subject']);
                 Assert::notNull($user); // Must exist
 
+                /** @psalm-var \Symfony\Component\Ldap\Entry $user */
                 $result = $this->userRepository->updatePassword($user, $newPassword);
                 if ($result === true) {
                     $this->logger::info(sprintf(
