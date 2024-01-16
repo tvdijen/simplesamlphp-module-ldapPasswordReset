@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace SimpleSAML\Module\ldapPasswordReset\Controller;
 
-use Exception;
 use SimpleSAML\Assert\Assert;
 use SimpleSAML\{Auth, Configuration, Error, Logger, Module, Session};
 use SimpleSAML\Module\ldapPasswordReset\MagicLink;

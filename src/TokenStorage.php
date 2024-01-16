@@ -8,12 +8,7 @@ use Exception;
 use Ramsey\Uuid\Uuid;
 use SimpleSAML\Configuration;
 use SimpleSAML\Store;
-use Symfony\Component\Ldap\Entry;
 use Symfony\Component\HttpFoundation\Request;
-
-use function array_pop;
-use function base64_encode;
-use function time;
 
 /**
  * This class generates and stores tokens to be used in magic links
