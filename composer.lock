@@ -791,16 +791,16 @@
         },
         {
             "name": "simplesamlphp/assert",
-            "version": "v1.1.0",
+            "version": "v1.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/simplesamlphp/assert.git",
-                "reference": "abffdfef47d10a4345a4a8d79049b60a3f466440"
+                "reference": "8598fb2005f4eed689e30ebffd4e8e85ed7ce9aa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/simplesamlphp/assert/zipball/abffdfef47d10a4345a4a8d79049b60a3f466440",
-                "reference": "abffdfef47d10a4345a4a8d79049b60a3f466440",
+                "url": "https://api.github.com/repos/simplesamlphp/assert/zipball/8598fb2005f4eed689e30ebffd4e8e85ed7ce9aa",
+                "reference": "8598fb2005f4eed689e30ebffd4e8e85ed7ce9aa",
                 "shasum": ""
             },
             "require": {
@@ -842,9 +842,9 @@
             "description": "A wrapper around webmozart/assert to make it useful beyond checking method arguments",
             "support": {
                 "issues": "https://github.com/simplesamlphp/assert/issues",
-                "source": "https://github.com/simplesamlphp/assert/tree/v1.1.0"
+                "source": "https://github.com/simplesamlphp/assert/tree/v1.1.1"
             },
-            "time": "2024-01-21T10:47:03+00:00"
+            "time": "2024-03-19T21:09:48+00:00"
         },
         {
             "name": "simplesamlphp/composer-module-installer",
@@ -949,16 +949,16 @@
         },
         {
             "name": "simplesamlphp/simplesamlphp",
-            "version": "v2.2.0",
+            "version": "v2.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/simplesamlphp/simplesamlphp.git",
-                "reference": "62005d76c684233649c2187d21d73fdbfdf4795a"
+                "reference": "0819ecbe66a11380c64bed0afb71c8d6dd4b714e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/simplesamlphp/simplesamlphp/zipball/62005d76c684233649c2187d21d73fdbfdf4795a",
-                "reference": "62005d76c684233649c2187d21d73fdbfdf4795a",
+                "url": "https://api.github.com/repos/simplesamlphp/simplesamlphp/zipball/0819ecbe66a11380c64bed0afb71c8d6dd4b714e",
+                "reference": "0819ecbe66a11380c64bed0afb71c8d6dd4b714e",
                 "shasum": ""
             },
             "require": {
@@ -1074,7 +1074,7 @@
                 "issues": "https://github.com/simplesamlphp/simplesamlphp/issues",
                 "source": "https://github.com/simplesamlphp/simplesamlphp"
             },
-            "time": "2024-03-08T15:08:20+00:00"
+            "time": "2024-03-16T23:03:28+00:00"
         },
         {
             "name": "simplesamlphp/simplesamlphp-assets-base",
@@ -1114,16 +1114,16 @@
         },
         {
             "name": "simplesamlphp/simplesamlphp-module-ldap",
-            "version": "v2.3.2",
+            "version": "v2.3.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/simplesamlphp/simplesamlphp-module-ldap.git",
-                "reference": "9eaf9afb9030de56093febdbd7e349a15499dadb"
+                "reference": "d8c6ab9f96534f2f44e0be1ed6ab11902c1cc112"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/simplesamlphp/simplesamlphp-module-ldap/zipball/9eaf9afb9030de56093febdbd7e349a15499dadb",
-                "reference": "9eaf9afb9030de56093febdbd7e349a15499dadb",
+                "url": "https://api.github.com/repos/simplesamlphp/simplesamlphp-module-ldap/zipball/d8c6ab9f96534f2f44e0be1ed6ab11902c1cc112",
+                "reference": "d8c6ab9f96534f2f44e0be1ed6ab11902c1cc112",
                 "shasum": ""
             },
             "require": {
@@ -1166,7 +1166,7 @@
                 "issues": "https://github.com/simplesamlphp/simplesamlphp-module-ldap/issues",
                 "source": "https://github.com/simplesamlphp/simplesamlphp-module-ldap"
             },
-            "time": "2024-01-22T20:11:55+00:00"
+            "time": "2024-03-19T13:13:41+00:00"
         },
         {
             "name": "symfony/cache",
