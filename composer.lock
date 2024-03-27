@@ -1114,16 +1114,16 @@
         },
         {
             "name": "simplesamlphp/simplesamlphp-module-ldap",
-            "version": "v2.3.4",
+            "version": "v2.3.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/simplesamlphp/simplesamlphp-module-ldap.git",
-                "reference": "d8c6ab9f96534f2f44e0be1ed6ab11902c1cc112"
+                "reference": "c4343120247d5890e00991e98b08d3e07bcb951a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/simplesamlphp/simplesamlphp-module-ldap/zipball/d8c6ab9f96534f2f44e0be1ed6ab11902c1cc112",
-                "reference": "d8c6ab9f96534f2f44e0be1ed6ab11902c1cc112",
+                "url": "https://api.github.com/repos/simplesamlphp/simplesamlphp-module-ldap/zipball/c4343120247d5890e00991e98b08d3e07bcb951a",
+                "reference": "c4343120247d5890e00991e98b08d3e07bcb951a",
                 "shasum": ""
             },
             "require": {
@@ -1166,7 +1166,7 @@
                 "issues": "https://github.com/simplesamlphp/simplesamlphp-module-ldap/issues",
                 "source": "https://github.com/simplesamlphp/simplesamlphp-module-ldap"
             },
-            "time": "2024-03-19T13:13:41+00:00"
+            "time": "2024-03-26T20:12:18+00:00"
         },
         {
             "name": "symfony/cache",
