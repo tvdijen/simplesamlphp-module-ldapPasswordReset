@@ -72,7 +72,7 @@ class TokenStorage
      * Retrieve stored token
      *
      * @param string $token
-     * @return array|null
+     * @return array<mixed>|null
      */
     public function retrieveToken(string $token): ?array
     {

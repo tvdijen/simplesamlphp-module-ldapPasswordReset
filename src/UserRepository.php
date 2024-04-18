@@ -68,7 +68,7 @@ class UserRepository
         Assert::notWhitespaceOnly($searchUsername);
 
         $searchPassword = $this->moduleConfig->getOptionalString('search.password', null);
-        Assert::nullOrnotWhitespaceOnly($searchPassword);
+        Assert::nullOrNotWhitespaceOnly($searchPassword);
 
         $ldap = new Ldap($this->connector->getAdapter());
         $ldapUserProvider = new LdapUserProvider($ldap, $searchBase, $searchUsername, $searchPassword, [], 'mail');
@@ -95,7 +95,7 @@ class UserRepository
         Assert::notWhitespaceOnly($searchUsername);
 
         $searchPassword = $this->moduleConfig->getOptionalString('search.password', null);
-        Assert::nullOrnotWhitespaceOnly($searchPassword);
+        Assert::nullOrNotWhitespaceOnly($searchPassword);
 
         try {
             $this->connector->bind($searchUsername, $searchPassword);

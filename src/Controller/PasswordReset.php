@@ -111,7 +111,7 @@ class PasswordReset
             $email = $request->request->get('email');
             Assert::stringNotEmpty($email);
 
-            /** @var array $state */
+            /** @var array<mixed> $state */
             $state = $this->authState::loadState($id, 'ldapPasswordReset:request', false);
 
             $user = $this->userRepository->findUserByEmail($email);
@@ -249,7 +249,7 @@ class PasswordReset
             throw new Error\BadRequest('Missing AuthState parameter.');
         }
 
-        /** @var array $state */
+        /** @var array<mixed> $state */
         $state = $this->authState::loadState($id, 'ldapPasswordReset:request', false);
 
         $t = new Template($this->config, 'ldapPasswordReset:resetPassword.twig');
