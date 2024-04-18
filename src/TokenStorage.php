@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace SimpleSAML\Module\ldapPasswordReset;
 
 use Exception;
-use Ramsey\Uuid\Uuid;
 use SimpleSAML\Configuration;
 use SimpleSAML\Store;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Uid\Uuid;
+
+use function strval;
 
 /**
  * This class generates and stores tokens to be used in magic links
@@ -97,6 +99,6 @@ class TokenStorage
      */
     public function generateToken(): string
     {
-        return Uuid::uuid4()->toString();
+        return strval(Uuid::v4());
     }
 }
