@@ -1,38 +1,38 @@
 ---
 
 ldapPasswordReset-main:
-    path:       /
-    defaults:   {
+    path: /
+    defaults: {
         _controller: 'Symfony\Bundle\FrameworkBundle\Controller\RedirectController::urlRedirectAction',
         path: /ldapPasswordReset/enterEmail,
         permanent: true
     }
-    methods:    [GET]
+    methods: [GET]
 
 ldapPasswordReset-enterEmail:
-    path:       /enterEmail
-    defaults:   {
+    path: /enterEmail
+    defaults: {
         _controller: 'SimpleSAML\Module\ldapPasswordReset\Controller\PasswordReset::enterEmail'
     }
-    methods:    [GET, POST]
+    methods: [GET, POST]
 
 ldapPasswordReset-resetPassword:
-    path:       /resetPassword
-    defaults:   {
+    path: /resetPassword
+    defaults: {
         _controller: 'SimpleSAML\Module\ldapPasswordReset\Controller\PasswordReset::resetPassword'
     }
-    methods:    [GET, POST]
+    methods: [GET, POST]
 
 ldapPasswordReset-validateMagicLink:
-    path:       /validateMagicLink
-    defaults:   {
+    path: /validateMagicLink
+    defaults: {
         _controller: 'SimpleSAML\Module\ldapPasswordReset\Controller\PasswordReset::validateMagicLink'
     }
-    methods:    [GET]
+    methods: [GET]
 
 ldapPasswordReset-invalidMagicLink:
-    path:       /invalidMagicLink
-    defaults:   {
+    path: /invalidMagicLink
+    defaults: {
         _controller: 'SimpleSAML\Module\ldapPasswordReset\Controller\PasswordReset::invalidMagicLink'
     }
-    methods:    [GET]
+    methods: [GET]
