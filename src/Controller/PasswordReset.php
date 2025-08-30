@@ -128,7 +128,7 @@ class PasswordReset
                     $email,
                     $session,
                     $validUntil,
-                    $state['ldapPasswordReset:referer'] ?? null
+                    $state['ldapPasswordReset:referer'] ?? null,
                 );
                 $this->logger::debug(sprintf('ldapPasswordReset: token %s was stored for %s', $token, $email));
 
@@ -138,12 +138,12 @@ class PasswordReset
                     'ldapPasswordReset: token %s was e-mailed to user %s (valid until %s)',
                     $token,
                     $email,
-                    date(DATE_RFC2822, $validUntil)
+                    date(DATE_RFC2822, $validUntil),
                 ));
             } else {
                 $this->logger::warning(sprintf(
                     'ldapPasswordReset: a password reset was requested for non-existing user %s',
-                    $email
+                    $email,
                 ));
             }
         } else {
@@ -196,7 +196,7 @@ class PasswordReset
                 $this->logger::info(sprintf(
                     "ldapPasswordReset: pre-conditions for token '%s' were met. User '%s' may change it's password.",
                     $t,
-                    $token['mail']
+                    $token['mail'],
                 ));
 
                 // All pre-conditions met - Allow user to change password
@@ -213,7 +213,7 @@ class PasswordReset
 
                 $id = $this->authState::saveState($state, 'ldapPasswordReset:request');
                 return new RedirectResponse(
-                    Module::getModuleURL('ldapPasswordReset/resetPassword', ['AuthState' => $id])
+                    Module::getModuleURL('ldapPasswordReset/resetPassword', ['AuthState' => $id]),
                 );
             }
         } else {
@@ -263,7 +263,7 @@ class PasswordReset
         if ($request->request->has('submit_button')) {
             $this->logger::debug(sprintf(
                 'ldapPasswordReset: a new password was entered for user %s',
-                $state['ldapPasswordReset:subject']
+                $state['ldapPasswordReset:subject'],
             ));
 
             // See if the submitted passwords match
@@ -275,7 +275,7 @@ class PasswordReset
             if (strcmp($newPassword, $retypePassword) === 0) {
                 $this->logger::debug(sprintf(
                     'ldapPasswordReset: new matching passwords were entered for user %s',
-                    $state['ldapPasswordReset:subject']
+                    $state['ldapPasswordReset:subject'],
                 ));
 
                 $user = $this->userRepository->findUserByEmail($state['ldapPasswordReset:subject']);
@@ -286,7 +286,7 @@ class PasswordReset
                 if ($result === true) {
                     $this->logger::info(sprintf(
                         'Password was reset for user: %s',
-                        $state['ldapPasswordReset:subject']
+                        $state['ldapPasswordReset:subject'],
                     ));
 
                     $t = new Template($this->config, 'ldapPasswordReset:passwordChanged.twig');
@@ -308,7 +308,7 @@ class PasswordReset
                 } else {
                     $this->logger::warning(sprintf(
                         'Password reset has failed for user: %s',
-                        $state['ldapPasswordReset:subject']
+                        $state['ldapPasswordReset:subject'],
                     ));
 
                     $t->data['passwordChanged'] = false;
@@ -316,7 +316,7 @@ class PasswordReset
             } else {
                 $this->logger::debug(sprintf(
                     'ldapPasswordReset: mismatching passwords were entered for user %s',
-                    $state['ldapPasswordReset:subject']
+                    $state['ldapPasswordReset:subject'],
                 ));
                 $t->data['passwordMismatch'] = true;
             }

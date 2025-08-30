@@ -47,7 +47,7 @@ class MagicLink
             $this->moduleConfig->getOptionalString('email.from', $this->config->getString('technicalcontact_email')),
             $email,
             'ldapPasswordReset:mailtxt.twig',
-            'ldapPasswordReset:mailhtml.twig'
+            'ldapPasswordReset:mailhtml.twig',
         );
         $mail->setData(['url' => $url, 'validUntil' => $validUntil]);
         $mail->setText('{url}');
