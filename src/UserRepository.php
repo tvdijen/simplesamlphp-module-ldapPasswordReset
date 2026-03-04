@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace SimpleSAML\Module\ldapPasswordReset;
 
 use SimpleSAML\Assert\Assert;
-use SimpleSAML\{Configuration, Error, Logger};
+use SimpleSAML\Configuration;
+use SimpleSAML\Error;
+use SimpleSAML\Logger;
 use SimpleSAML\Module\ldap\Connector;
 use Symfony\Component\Ldap\Entry;
 use Symfony\Component\Ldap\Ldap;
@@ -27,6 +29,9 @@ class UserRepository
     /** @var \SimpleSAML\Configuration */
     protected Configuration $moduleConfig;
 
+    /** @var \SimpleSAML\Configuration */
+    protected Configuration $ldapSource;
+
     /** @var \SimpleSAML\Module\ldap\Connector\Ldap */
     protected Connector\Ldap $connector;
 
@@ -36,20 +41,26 @@ class UserRepository
     public function __construct()
     {
         $this->moduleConfig = Configuration::getOptionalConfig('module_ldapPasswordReset.php');
+        $authSource = $this->moduleConfig->getString('ldapSource');
+        $authSources = Configuration::getConfig('authsources.php');
 
-        $encryption = $this->moduleConfig->getOptionalString('encryption', 'ssl');
+        $this->ldapSource = Configuration::loadFromArray(
+            $authSources->getValue($authSource),
+        );
+
+        $encryption = $this->ldapSource->getOptionalString('encryption', 'ssl');
         Assert::oneOf($encryption, ['none', 'ssl', 'tls']);
 
-        $version = $this->moduleConfig->getOptionalInteger('version', 3);
+        $version = $this->ldapSource->getOptionalInteger('version', 3);
         Assert::positiveInteger($version);
 
         $this->connector = new Connector\Ldap(
-            $this->moduleConfig->getString('connection_string'),
+            $this->ldapSource->getString('connection_string'),
             $encryption,
             $version,
-            $this->moduleConfig->getOptionalString('extension', 'ext_ldap'),
-            $this->moduleConfig->getOptionalBoolean('debug', false),
-            $this->moduleConfig->getOptionalArray('options', []),
+            $this->ldapSource->getOptionalString('extension', 'ext_ldap'),
+            $this->ldapSource->getOptionalBoolean('debug', false),
+            $this->ldapSource->getOptionalArray('options', []),
         );
     }
 
@@ -62,23 +73,34 @@ class UserRepository
      */
     public function findUserByEmail(string $email): ?Entry
     {
-        $searchBase = $this->moduleConfig->getString('search.base');
+        $searchBase = $this->ldapSource->getArray('search.base');
 
-        $searchUsername = $this->moduleConfig->getString('search.username');
+        $searchUsername = $this->ldapSource->getString('search.username');
         Assert::notWhitespaceOnly($searchUsername);
 
-        $searchPassword = $this->moduleConfig->getOptionalString('search.password', null);
+        $searchPassword = $this->ldapSource->getOptionalString('search.password', null);
         Assert::nullOrNotWhitespaceOnly($searchPassword);
 
         $ldap = new Ldap($this->connector->getAdapter());
-        $ldapUserProvider = new LdapUserProvider($ldap, $searchBase, $searchUsername, $searchPassword, [], 'mail');
 
-        try {
-            return $ldapUserProvider->loadUserByIdentifier($email)->getEntry();
-        } catch (UserNotFoundException $e) {
-            // We haven't found the user
-            return null;
+        foreach ($searchBase as $baseDn) {
+            $ldapUserProvider = new LdapUserProvider(
+                $ldap,
+                $baseDn,
+                $searchUsername,
+                $searchPassword,
+                [],
+                $this->moduleConfig->getOptionalString('ldapIdentifyingAttribute', 'userPrincipalName'));
+
+            try {
+                return $ldapUserProvider->loadUserByIdentifier($email)->getEntry();
+            } catch (UserNotFoundException $e) {
+                // We haven't found the user
+                continue;
+            }
         }
+
+        return null;
     }
 
 
@@ -91,10 +113,10 @@ class UserRepository
      */
     public function updatePassword(Entry $user, string $newPassword): bool
     {
-        $searchUsername = $this->moduleConfig->getString('search.username');
+        $searchUsername = $this->ldapSource->getString('search.username');
         Assert::notWhitespaceOnly($searchUsername);
 
-        $searchPassword = $this->moduleConfig->getOptionalString('search.password', null);
+        $searchPassword = $this->ldapSource->getOptionalString('search.password', null);
         Assert::nullOrNotWhitespaceOnly($searchPassword);
 
         try {
