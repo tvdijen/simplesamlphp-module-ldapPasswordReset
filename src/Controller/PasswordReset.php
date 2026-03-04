@@ -10,15 +10,12 @@ use SimpleSAML\Configuration;
 use SimpleSAML\Error;
 use SimpleSAML\Logger;
 use SimpleSAML\Module;
-use SimpleSAML\Session;
 use SimpleSAML\Module\ldapPasswordReset\UserRepository;
+use SimpleSAML\Session;
 use SimpleSAML\XHTML\Template;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-use function date;
 use function sprintf;
-use function time;
 
 /**
  * Controller class for the ldapPasswordReset module.
@@ -47,10 +44,7 @@ class PasswordReset
     /** @var \SimpleSAML\Module\ldapPasswordReset\UserRepository */
     protected UserRepository $userRepository;
 
-    /**
-     * @var \SimpleSAML\Auth\State|string
-     * @psalm-var \SimpleSAML\Auth\State|class-string
-     */
+    /** @var \SimpleSAML\Auth\State|string */
     protected $authState = Auth\State::class;
 
 
@@ -94,10 +88,8 @@ class PasswordReset
 
     /**
      * Initializes the authentication
-     *
-     * @return \SimpleSAML\XHTML\Template
      */
-    public function login(Request $request): Template
+    public function login(Request $request): void
     {
         $auth = $this->moduleConfig->getString('auth');
         if (Auth\Source::getById($auth) !== null) {
@@ -122,7 +114,7 @@ class PasswordReset
      */
     public function resetPassword(Request $request): Template
     {
-        /** @psalm-var string|null $id */
+        /** @var string|null $id */
         $id = $request->query->get('AuthState', null);
         if ($id === null) {
             throw new Error\BadRequest('Missing AuthState parameter.');
@@ -156,9 +148,9 @@ class PasswordReset
             ));
 
             // See if the submitted passwords match
-            /** @psalm-var string $newPassword */
+            /** @var string $newPassword */
             $newPassword = $request->request->get('new-password');
-            /** @psalm-var string $retypePassword */
+            /** @var string $retypePassword */
             $retypePassword = $request->request->get('password');
 
             if (strcmp($newPassword, $retypePassword) === 0) {
@@ -167,10 +159,10 @@ class PasswordReset
                     $subject,
                 ));
 
+                /** @var \Symfony\Component\Ldap\Entry $user */
                 $user = $this->userRepository->findUserByEmail($attributes['userPrincipalName'][0]);
                 Assert::notNull($user); // Must exist
 
-                /** @psalm-var \Symfony\Component\Ldap\Entry $user */
                 $result = $this->userRepository->updatePassword($user, $newPassword);
                 if ($result === true) {
                     $this->logger::info(sprintf(

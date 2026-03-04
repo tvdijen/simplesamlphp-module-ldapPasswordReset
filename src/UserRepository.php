@@ -7,7 +7,6 @@ namespace SimpleSAML\Module\ldapPasswordReset;
 use SimpleSAML\Assert\Assert;
 use SimpleSAML\Configuration;
 use SimpleSAML\Error;
-use SimpleSAML\Logger;
 use SimpleSAML\Module\ldap\Connector;
 use Symfony\Component\Ldap\Entry;
 use Symfony\Component\Ldap\Ldap;
@@ -90,7 +89,8 @@ class UserRepository
                 $searchUsername,
                 $searchPassword,
                 [],
-                $this->moduleConfig->getOptionalString('ldapIdentifyingAttribute', 'userPrincipalName'));
+                $this->moduleConfig->getOptionalString('ldapIdentifyingAttribute', 'userPrincipalName'),
+            );
 
             try {
                 return $ldapUserProvider->loadUserByIdentifier($email)->getEntry();
